@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Suggested Courses & Books - University Advisor{% endblock %} 
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-video me-2"></i> Suggested Courses</h4> 
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for course in courses %}
+                        <a href="{{ course.url }}" target="_blank" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ course.title }}</h5>
+                                <small class="text-muted">{{ course.category }}</small>
+                            </div>
+                            <p class="mb-1">{{ course.description }}</p>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item">No courses available at the moment.</div> 
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-book me-2"></i> Suggested Books</h4> 
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for book in books %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ book.title }}</h5>
+                                <small class="text-muted">{{ book.category }}</small>
+                            </div>
+                            <p class="mb-1">{{ book.author }}</p>
+                            <p class="mb-1">{{ book.description }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item">No books available at the moment.</div> 
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

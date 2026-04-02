@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* General Styles */
+    .about-page {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', 'Cairo', Tahoma, sans-serif;
+        direction: ltr; /* Changed to LTR */
+    }
+
+    .about-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 100px 0 80px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    .hero-content h1 {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-content p {
+        font-size: 20px;
+        opacity: 0.95;
+        line-height: 1.6;
+    }
+
+    /* Content Cards */
+    .content-section {
+        padding: 80px 0;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 20px;
+        padding: 50px;
+        margin-bottom: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .section-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #f0f2ff;
+    }
+
+    .section-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 25px; /* Changed margin-left to margin-right for LTR */
+        margin-left: 0;
+        color: white;
+        font-size: 30px;
+        flex-shrink: 0;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .section-subtitle {
+        color: #667eea;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .section-body {
+        color: #555;
+        line-height: 1.8;
+        font-size: 17px;
+    }
+
+    /* Goals List */
+    .goals-list {
+        list-style: none;
+        padding: 0;
+        margin: 30px 0;
+    }
+
+    .goal-item {
+        padding: 20px 25px;
+        margin-bottom: 15px;
+        background: #f8f9ff;
+        border-radius: 15px;
+        border-left: 5px solid #667eea; /* Changed border-right to border-left for LTR */
+        border-right: none;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .goal-item:hover {
+        background: #f0f2ff;
+        transform: translateX(10px); /* Changed direction for LTR */
+    }
+
+    .goal-number {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 20px; /* Changed margin-left to margin-right for LTR */
+        margin-left: 0;
+        flex-shrink: 0;
+    }
+
+    .goal-text {
+        font-size: 16px;
+        color: #444;
+        font-weight: 500;
+    }
+
+    /* Team Section */
+    .team-section {
+        background: #f8f9ff;
+        padding: 80px 0;
+        position: relative;
+    }
+
+    .team-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23667eea' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+
+    .section-title-main {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 60px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .team-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .team-card:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 25px 60px rgba(102, 126, 234, 0.15);
+    }
+
+    .team-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .team-img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid #f0f2ff;
+        margin-bottom: 25px;
+        transition: all 0.3s ease;
+    }
+
+    .team-card:hover .team-img {
+        transform: scale(1.05);
+        border-color: #667eea;
+    }
+
+    .team-name {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .team-role {
+        color: #667eea;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding: 8px 20px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 25px;
+        display: inline-block;
+    }
+
+    .team-bio {
+        color: #666;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-top: 15px;
+    }
+
+    /* Conclusion Styles */
+    .conclusion-section {
+        padding: 80px 0;
+        background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+        color: white;
+        text-align: center;
+    }
+
+    .conclusion-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .conclusion-content h2 {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 30px;
+    }
+
+    .conclusion-content p {
+        font-size: 18px;
+        line-height: 1.8;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .vision-statement {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        margin-top: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .vision-statement h3 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 36px;
+        }
+        
+        .hero-content p {
+            font-size: 18px;
+        }
+        
+        .section-card {
+            padding: 30px;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .section-icon {
+            margin-right: 0; /* Changed for LTR */
+            margin-bottom: 20px;
+        }
+        
+        .team-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .goal-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .goal-number {
+            margin-right: 0; /* Changed for LTR */
+            margin-bottom: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-content h1 {
+            font-size: 28px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+        }
+        
+        .team-img {
+            width: 120px;
+            height: 120px;
+        }
+    }
+</style>
+
+<div class="about-page">
+    <!-- Hero Section -->
+    
+    <section class="about-hero">
+        <div class="hero-content">
+            <h1>About Us</h1> 
+            <p>
+                We are a team of creators and experts who believe that every student deserves the opportunity 
+                to discover their passion and build their future in a field that matches their abilities and interests.
+            </p>
+        </div>
+    </section>
+
+    <!-- Project Idea -->
+    
+    <section class="content-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">💡</div>
+                            <div>
+                                <h2 class="section-title">The Project Idea</h2> 
+                                <p class="section-subtitle">A vision turned into reality</p> 
+                            </div>
+                        </div>
+                        <div class="section-body">
+                            <p>
+                                The idea of "Smart University Advisor" came from the urgent need to guide students 
+                                towards university majors suitable for their skills and interests, contributing to 
+                                reducing confusion and increasing chances of success and excellence in academic and professional fields.
+                            </p>
+                            <p class="mt-4">
+                                We believe that the right choice of university major is not just an academic decision, 
+                                but the beginning of a journey towards self-realization and professional excellence. Therefore, we designed 
+                                our system to be a comprehensive guide based on scientific and methodological foundations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Goals -->
+    
+    <section class="content-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🎯</div>
+                            <div>
+                                <h2 class="section-title">Project Goals</h2> 
+                                <p class="section-subtitle">Our mission towards excellence</p> 
+                            </div>
+                        </div>
+                        <div class="section-body">
+                            <ul class="goals-list">
+                                <li class="goal-item">
+                                    <span class="goal-number">1</span>
+                                    <span class="goal-text">Helping students discover their scientific and personal inclinations and abilities</span> 
+                                </li>
+                                <li class="goal-item">
+                                    <span class="goal-number">2</span>
+                                    <span class="goal-text">Guiding students towards suitable university majors based on scientific analysis</span> 
+                                </li>
+                                <li class="goal-item">
+                                    <span class="goal-number">3</span>
+                                    <span class="goal-text">Providing comprehensive information about university majors and labor market requirements</span> 
+                                </li>
+                                <li class="goal-item">
+                                    <span class="goal-number">4</span>
+                                    <span class="goal-text">Alleviating the burden on parents and academic advisors</span> 
+                                </li>
+                                <li class="goal-item">
+                                    <span class="goal-number">5</span>
+                                    <span class="goal-text">Raising the level of job and professional satisfaction among graduates</span> 
+                                </li>
+                                <li class="goal-item">
+                                    <span class="goal-number">6</span>
+                                    <span class="goal-text">Building a generation aware of its capabilities and qualified to face future challenges</span> 
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    
+    <section class="team-section">
+        <div class="container">
+            <h2 class="section-title-main">Our Team</h2> 
+            <div class="team-grid">
+                <div class="team-card">
+                    <img src="{% static 'images/team1.jpg' %}" class="team-img" alt="Ahmed Mohamed">
+                    <h3 class="team-name">Ahmed Mohamed</h3> 
+                    <div class="team-role">Backend Developer</div> 
+                    <p class="team-bio">
+                        Expert in developing smart systems and web applications, 
+                        with over 8 years of experience in programming.
+                    </p>
+                </div>
+
+                <div class="team-card">
+                    <img src="{% static 'images/team2.jpg' %}" class="team-img" alt="Sarah Abdullah">
+                    <h3 class="team-name">Sarah Abdullah</h3> 
+                    <div class="team-role">UX Designer</div> 
+                    <p class="team-bio">
+                        Specialized in user interface and user experience design, 
+                        aiming to make technology easy and accessible to everyone.
+                    </p>
+                </div>
+
+                <div class="team-card">
+                    <img src="{% static 'images/team3.jpg' %}" class="team-img" alt="Khaled Ali">
+                    <h3 class="team-name">Khaled Ali</h3> 
+                    <div class="team-role">Educational Expert</div> 
+                    <p class="team-bio">
+                        Academic advisor with 15 years of experience in career guidance, 
+                        helped hundreds of students successfully choose their majors.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conclusion -->
+    
+    <section class="conclusion-section">
+        <div class="conclusion-content">
+            <h2>Our Vision for the Future</h2> 
+            <p>
+                We strive to be the primary reference in university and career guidance in the region, 
+                and to contribute to building a generation of youth aware of their abilities, empowered with their skills, 
+                capable of shaping their future with confidence and competence.
+            </p>
+            
+            <div class="vision-statement">
+                <h3>We Believe That...</h3> 
+                <p>
+                    Education is not just academic achievement, but a journey of self-discovery and skill development. 
+                    And the right university choice is the first gateway towards a successful 
+                    and stable professional life full of achievements and creativity.
+                </p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Simple interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Effects of element appearance on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply effect to elements
+        document.querySelectorAll('.section-card, .team-card').forEach((el) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Digital effect for progress bar in goals
+        const goalItems = document.querySelectorAll('.goal-item');
+        goalItems.forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.1}s`;
+        });
+    });
+</script>
+{% endblock %}

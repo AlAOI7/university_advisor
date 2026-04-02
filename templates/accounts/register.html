@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account - Smart University Advisor{% endblock %} 
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">Create New Account</h4> 
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <div class="text-center p-4">
+                                <i class="fas fa-user-plus fa-5x text-success mb-4"></i>
+                                <h5 class="mb-3">Join Our Community</h5> 
+                                <ul class="list-unstyled text-start">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Free Personality Tests</li> 
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>University Majors Guide</li> 
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Free Training Courses</li> 
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Personalized Recommendations</li> 
+                                    <li><i class="fas fa-check text-success me-2"></i>Track Your Academic Progress</li> 
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="POST">
+                                {% csrf_token %}
+                                
+                                {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        {% for field in form %}
+                                            {% for error in field.errors %}
+                                                <p class="mb-1">{{ error }}</p>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label> 
+                                    <input type="text" name="username" id="{{ form.username.id_for_label }}" 
+                                           class="form-control" required value="{{ form.username.value|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label> 
+                                    <input type="email" name="email" id="{{ form.email.id_for_label }}" 
+                                           class="form-control" required value="{{ form.email.value|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label> 
+                                    <input type="password" name="password1" id="{{ form.password1.id_for_label }}" 
+                                           class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label> 
+                                    <input type="password" name="password2" id="{{ form.password2.id_for_label }}" 
+                                           class="form-control" required>
+                                </div>
+                                
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" required id="agreeTerms">
+                                    <label class="form-check-label" for="agreeTerms">
+                                        I agree to <a href="#" class="text-primary">Terms of Use</a> and <a href="#" class="text-primary">Privacy Policy</a> 
+                                    </label>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>Create Account 
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div class="text-center mt-4">
+                                <p class="mb-0">Already have an account? 
+                                    <a href="{% url 'accounts:profile' %}" class="btn btn-primary me-3">Login</a> 
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 25px;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 12px;
+        font-size: 18px;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validation for Terms agreement
+        const form = document.querySelector('form');
+        const checkbox = document.getElementById('agreeTerms');
+        
+        form.addEventListener('submit', function(e) {
+            if (!checkbox.checked) {
+                e.preventDefault();
+                alert('You must agree to the terms and conditions before proceeding'); 
+                checkbox.focus();
+            }
+        });
+        
+        // Toggle Password Visibility
+        const passwordFields = document.querySelectorAll('input[type="password"]');
+        passwordFields.forEach(field => {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'btn btn-outline-secondary btn-sm position-absolute';
+            toggleBtn.style.right = '10px';
+            toggleBtn.style.top = '50%';
+            toggleBtn.style.transform = 'translateY(-50%)';
+            toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
+            
+            field.parentNode.style.position = 'relative';
+            field.parentNode.appendChild(toggleBtn);
+            
+            toggleBtn.addEventListener('click', function() {
+                const type = field.getAttribute('type') === 'password' ? 'text' : 'password';
+                field.setAttribute('type', type);
+                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+
+{% block title %}Majors Catalog - Smart University Advisor{% endblock %} 
+
+{% block content %}
+<!-- Header and Search -->
+
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-4 mb-3">Majors Catalog</h1> 
+                <p class="lead text-muted">Explore over 500 university majors in various fields</p> 
+            </div>
+        </div>
+        
+        <!-- Search and Filter Bar -->
+        
+        <div class="row mb-4">
+            <div class="col-md-8 mb-3 mb-md-0">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" 
+                           id="searchInput" placeholder="Search for a major..."> 
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select form-select-lg" id="filterField">
+                    <option value="">All Fields</option> 
+                    <option value="medical">Medical & Health</option> 
+                    <option value="engineering">Engineering & Technology</option> 
+                    <option value="business">Business & Management</option> 
+                    <option value="arts">Arts & Humanities</option> 
+                    <option value="science">Basic Sciences</option> 
+                    <option value="education">Education</option> 
+                    <option value="law">Law & Legal</option> 
+                </select>
+            </div>
+        </div>
+        
+        <!-- Quick Filter -->
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary active filter-btn" data-field="">
+                        All 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="medical">
+                        <i class="fas fa-stethoscope me-2"></i>Medical 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="engineering">
+                        <i class="fas fa-cogs me-2"></i>Engineering 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="business">
+                        <i class="fas fa-chart-line me-2"></i>Business 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="arts">
+                        <i class="fas fa-palette me-2"></i>Arts 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="science">
+                        <i class="fas fa-flask me-2"></i>Science 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="education">
+                        <i class="fas fa-graduation-cap me-2"></i>Education 
+                    </button>
+                    <button class="btn btn-outline-primary filter-btn" data-field="law">
+                        <i class="fas fa-gavel me-2"></i>Law 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Majors List -->
+
+<div class="container py-5">
+    <div class="row" id="majorsContainer">
+        {% for major in majors %}
+        <div class="col-lg-4 col-md-6 mb-4 major-card" data-field="{{ major.field }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header text-white 
+                    {% if major.field == 'medical' %}bg-danger
+                    {% elif major.field == 'engineering' %}bg-primary
+                    {% elif major.field == 'business' %}bg-success
+                    {% elif major.field == 'arts' %}bg-warning
+                    {% elif major.field == 'science' %}bg-info
+                    {% elif major.field == 'education' %}bg-purple
+                    {% else %}bg-secondary{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ major.name }}</h5>
+                        <span class="badge bg-light text-dark">
+                            <i class="fas {{ major.icon }}"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ major.description|truncatewords:30 }}</p>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">
+                            <i class="fas fa-clock me-2"></i>Duration: {{ major.duration }} 
+                        </small>
+                        <small class="text-muted d-block mb-1">
+                            <i class="fas fa-university me-2"></i>Avg Cost: {{ major.cost }} 
+                        </small>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-chart-line me-2"></i>Job Opportunities: {{ major.job_opportunity }} 
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="d-block mb-2">Required Skills:</strong> 
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for skill in major.skills %}
+                            <span class="badge bg-light text-dark">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="d-block mb-2">Career Fields:</strong> 
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for job in major.jobs %}
+                            <span class="badge bg-light text-primary">{{ job }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">
+                            <i class="fas fa-heart text-danger me-1"></i>
+                            {{ major.interest_rate }}% Interested 
+                        </span>
+                        <a href="{% url 'majors:major_detail' major.id %}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>Details 
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- No Results Message -->
+    
+    <div class="row d-none" id="noResults">
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">No majors match your search</h4> 
+            <p class="text-muted">Try using different search terms or change the filter</p> 
+        </div>
+    </div>
+</div>
+
+<!-- Majors Statistics -->
+
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="mb-3">Majors Statistics</h2> 
+                <p class="lead text-muted">Overview of the job market and education</p> 
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="text-center">
+                    <div class="stat-circle bg-primary mb-3">
+                        <i class="fas fa-graduation-cap fa-2x text-white"></i>
+                    </div>
+                    <h3 class="mb-2">500+</h3>
+                    <p class="text-muted mb-0">University Majors</p> 
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="text-center">
+                    <div class="stat-circle bg-success mb-3">
+                        <i class="fas fa-briefcase fa-2x text-white"></i>
+                    </div>
+                    <h3 class="mb-2">95%</h3>
+                    <p class="text-muted mb-0">Employment Rate</p> 
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="text-center">
+                    <div class="stat-circle bg-warning mb-3">
+                        <i class="fas fa-money-bill-wave fa-2x text-white"></i>
+                    </div>
+                    <h3 class="mb-2">25%</h3>
+                    <p class="text-muted mb-0">Annual Salary Growth</p> 
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="text-center">
+                    <div class="stat-circle bg-info mb-3">
+                        <i class="fas fa-star fa-2x text-white"></i>
+                    </div>
+                    <h3 class="mb-2">4.8/5</h3>
+                    <p class="text-muted mb-0">Graduate Satisfaction</p> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Most In-Demand Majors -->
+
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-3">Most In-Demand Majors</h2> 
+            <p class="lead text-muted">Top 5 majors in terms of job opportunities and salaries</p> 
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for top_major in top_majors %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="rank-circle me-3">
+                            <span class="rank-number">{{ forloop.counter }}</span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="mb-0">{{ top_major.name }}</h5>
+                                <span class="badge bg-success">{{ top_major.demand }}</span>
+                            </div>
+                            <p class="text-muted mb-3">{{ top_major.description }}</p>
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-money-bill me-1"></i>
+                                        Avg Salary: {{ top_major.salary }} 
+                                    </small>
+                                </div>
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-chart-line me-1"></i>
+                                        Growth: {{ top_major.growth }}% 
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Majors Comparison -->
+
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="mb-3">Compare Majors</h2> 
+                <p class="lead text-muted">Compare different majors to choose the best for you</p> 
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Major</th> 
+                                    <th>Duration</th> 
+                                    <th>Avg Cost</th> 
+                                    <th>Job Opportunities</th> 
+                                    <th>Avg Salary</th> 
+                                    <th>Satisfaction Rate</th> 
+                                    <th>Action</th> 
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for compare_major in compare_majors %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ compare_major.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ compare_major.field }}</small>
+                                    </td>
+                                    <td>{{ compare_major.duration }}</td>
+                                    <td>{{ compare_major.cost }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ compare_major.job_rate }}%">
+                                                {{ compare_major.job_rate }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-success">{{ compare_major.salary }}</td>
+                                    <td>
+                                        <div class="stars">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= compare_major.satisfaction %}
+                                                <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline-primary compare-btn" 
+                                           data-major="{{ compare_major.id }}">
+                                            <i class="fas fa-balance-scale me-1"></i>Compare 
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    .rank-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .rank-number {
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+    }
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+    .major-card {
+        transition: transform 0.3s;
+    }
+    .major-card:hover {
+        transform: translateY(-5px);
+    }
+    .stars {
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const filterSelect = document.getElementById('filterField');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const majorCards = document.querySelectorAll('.major-card');
+        const noResults = document.getElementById('noResults');
+        
+        function filterMajors() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filterValue = filterSelect.value;
+            
+            let visibleCount = 0;
+            
+            majorCards.forEach(card => {
+                const majorName = card.querySelector('.card-header h5').textContent.toLowerCase();
+                const majorField = card.getAttribute('data-field');
+                
+                const matchesSearch = majorName.includes(searchTerm);
+                const matchesFilter = !filterValue || majorField === filterValue;
+                
+                if (matchesSearch && matchesFilter) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Show/Hide no results message
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        }
+        
+        // Search and Filter Events
+        searchInput.addEventListener('input', filterMajors);
+        filterSelect.addEventListener('change', filterMajors);
+        
+        // Quick Filter Buttons Events
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const field = this.getAttribute('data-field');
+                filterSelect.value = field;
+                filterMajors();
+            });
+        });
+        
+        // Compare Majors
+        const compareButtons = document.querySelectorAll('.compare-btn');
+        const selectedMajors = new Set();
+        
+        compareButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const majorId = this.getAttribute('data-major');
+                
+                if (selectedMajors.has(majorId)) {
+                    selectedMajors.delete(majorId);
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-primary');
+                    this.innerHTML = '<i class="fas fa-balance-scale me-1"></i>Compare'; 
+                } else {
+                    if (selectedMajors.size < 2) {
+                        selectedMajors.add(majorId);
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-primary');
+                        this.innerHTML = '<i class="fas fa-check me-1"></i>Selected'; 
+                    } else {
+                        alert('You can only compare two majors at the same time'); 
+                    }
+                }
+                
+                // Enable compare action if two majors selected
+                if (selectedMajors.size === 2) {
+                    if (!document.getElementById('compareAction')) {
+                        const compareAction = document.createElement('div');
+                        compareAction.id = 'compareAction';
+                        compareAction.className = 'fixed-bottom p-3 bg-white shadow-lg border-top';
+                        compareAction.innerHTML = `
+                            <div class="container">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0">Two majors selected for comparison</h5> 
+                                        <small class="text-muted">Click the compare button to see results</small> 
+                                    </div>
+                                    <button class="btn btn-primary" id="doCompare">
+                                        <i class="fas fa-balance-scale-left me-2"></i>Compare Now 
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(compareAction);
+                        
+                        document.getElementById('doCompare').addEventListener('click', function() {
+                            // Compare logic
+                            const majorsArray = Array.from(selectedMajors);
+                            window.location.href = `/majors/compare/${majorsArray[0]}/${majorsArray[1]}/`;
+                        });
+                    }
+                } else {
+                    const compareAction = document.getElementById('compareAction');
+                    if (compareAction) {
+                        compareAction.remove();
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}Analysis Results - University Advisor{% endblock %} 
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <div class="analysis-icon mb-3">
+            <i class="fas fa-chart-line fa-4x text-primary"></i>
+        </div>
+        <h1 class="display-4 fw-bold">Personal Analysis Results</h1> 
+        <p class="lead text-muted">Comprehensive analysis based on your test answers</p> 
+    </div>
+
+    <!-- Personality Type Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 personality-card">
+                <div class="card-body p-5 text-center">
+                    <div class="personality-badge mb-4">
+                        <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                        <h2 class="mb-3">Your Personality Type</h2> 
+                        <span class="badge bg-gradient-primary p-3 fs-4">{{ result.personality_type }}</span>
+                    </div>
+                    <p class="lead mt-4" id="personality-description">{{ result.personality_description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strengths & Interests -->
+    <div class="row mb-4">
+        <!-- Strengths -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100 border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-star me-2"></i>Strengths</h4> 
+                </div>
+                <div class="card-body">
+                    <div class="strengths-list">
+                        {% for strength in strengths %}
+                        <div class="strength-item mb-3 p-3 bg-light rounded">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>{{ strength }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interests -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100 border-0">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-heart me-2"></i>Interests</h4> 
+                </div>
+                <div class="card-body">
+                    <div class="interests-list">
+                        {% for interest in interests %}
+                        <div class="interest-item mb-3 p-3 bg-light rounded">
+                            <i class="fas fa-bookmark text-info me-2"></i>
+                            <strong>{{ interest }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Analysis -->
+    <div class="card shadow-lg border-0 mb-4">
+        <div class="card-header bg-gradient-purple text-white">
+            <h4 class="mb-0"><i class="fas fa-robot me-2"></i>AI Analysis</h4> 
+        </div>
+        <div class="card-body p-4">
+            <div class="ai-analysis">
+                <h5 class="text-primary mb-3">Detailed Analysis:</h5> 
+                <p class="lead">{{ ai_analysis.summary }}</p>
+                
+                <div class="analysis-sections mt-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success"><i class="fas fa-graduation-cap me-2"></i>Suitable Learning Style:</h6> 
+                        <p>{{ ai_analysis.learning_style }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-info"><i class="fas fa-briefcase me-2"></i>Ideal Work Environment:</h6> 
+                        <p>{{ ai_analysis.work_environment }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Points to Consider:</h6> 
+                        <p>{{ ai_analysis.considerations }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Majors -->
+    <div class="card shadow-lg border-0 mb-5">
+        <div class="card-header bg-gradient-primary text-white">
+            <h3 class="mb-0"><i class="fas fa-university me-2"></i>Recommended Majors</h3> 
+            <p class="mb-0 mt-2">We selected the best majors for you based on your personal analysis</p> 
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                {% for major in recommended_majors %}
+                <div class="col-md-6 mb-4">
+                    <div class="major-recommendation-card h-100">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="fw-bold text-primary">{{ major.name_ar }}</h5>
+                                    <span class="badge bg-success">{{ major.match_percentage }}%</span>
+                                </div>
+                                
+                                <p class="text-muted mb-3">{{ major.description|truncatewords:20 }}</p>
+                                
+                                <div class="major-details">
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-chart-line me-1"></i>Demand Level:</small> 
+                                        <span class="badge bg-{{ major.demand_level }}">{{ major.get_demand_level_display }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-dollar-sign me-1"></i>Average Salary:</small> 
+                                        <strong>{{ major.salary_range }}</strong>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <a href="{% url 'majors:major_detail' major.id %}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-info-circle me-2"></i>Major Details 
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills Development Chart -->
+    <div class="card shadow-lg border-0 mb-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Skills Chart</h4> 
+        </div>
+        <div class="card-body">
+            <canvas id="skillsChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-center mt-5">
+        <a href="{% url 'majors:majors_list' %}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-search me-2"></i>Explore All Majors 
+        </a>
+        <a href="{% url 'tests:test_home' %}" class="btn btn-outline-secondary btn-lg">
+            <i class="fas fa-redo me-2"></i>Retake Test 
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-info btn-lg">
+            <i class="fas fa-print me-2"></i>Print Results 
+        </button>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #a044ff 0%, #6a3093 100%);
+}
+
+.personality-card {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.personality-badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.strength-item, .interest-item {
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+}
+
+.strength-item {
+    border-left-color: #28a745;
+}
+
+.interest-item {
+    border-left-color: #17a2b8;
+}
+
+.strength-item:hover, .interest-item:hover {
+    transform: translateX(10px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.major-recommendation-card {
+    transition: transform 0.3s ease;
+}
+
+.major-recommendation-card:hover {
+    transform: translateY(-5px);
+}
+
+.ai-analysis {
+    line-height: 1.8;
+}
+
+@media print {
+    .btn, .card-header { 
+        display: none; 
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Skills Chart
+const ctx = document.getElementById('skillsChart').getContext('2d');
+const skillsChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: {{ skills_labels|safe }},
+        datasets: [{
+            label: 'Skills Level',
+            data: {{ skills_values|safe }},
+            fill: true,
+            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+            borderColor: 'rgba(102, 126, 234, 1)',
+            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(102, 126, 234, 1)'
+        }]
+    },
+    options: {
+        elements: {
+            line: {
+                borderWidth: 3
+            }
+        },
+        scales: {
+            r: {
+                angleLines: {
+                    display: true
+                },
+                suggestedMin: 0,
+                suggestedMax: 100
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Animation on load
+document.querySelectorAll('.strength-item, .interest-item').forEach((item, index) => {
+    setTimeout(() => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        setTimeout(() => {
+            item.style.transition = 'all 0.5s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, 50);
+    }, index * 100);
+});
+</script>
+{% endblock %}

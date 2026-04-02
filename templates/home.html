@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">Smart University Advisor</h1> 
+        <p class="lead mb-4">Discover the right university major for your skills and personality using AI.</p> 
+        <div class="mt-5">
+            <a href="{% url 'tests:test_home' %}" class="btn btn-light btn-lg me-3">
+                <i class="fas fa-play-circle me-2"></i> Start Test 
+            </a>
+            <a href="{% url 'majors:catalog' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-search me-2"></i> Browse Majors 
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                        <h4 class="card-title">Advanced AI</h4> 
+                        <p class="card-text">A smart system that analyzes your skills and personality to suggest the best university majors for you.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-book-open fa-3x text-primary mb-3"></i>
+                        <h4 class="card-title">Majors Guide</h4> 
+                        <p class="card-text">Explore all university majors, their requirements, and career paths.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                        <h4 class="card-title">Skills Assessment</h4> 
+                        <p class="card-text">Test your skills and abilities to get an accurate assessment that helps you choose your major.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics -->
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-3">
+                <h2 class="display-4 text-primary">{{ total_majors }}+</h2>
+                <p class="lead">University Major</p> 
+            </div>
+            <div class="col-md-3 mb-3">
+                <h2 class="display-4 text-primary">5</h2>
+                <p class="lead">Main Fields</p> 
+            </div>
+            <div class="col-md-3 mb-3">
+                <h2 class="display-4 text-primary">50+</h2>
+                <p class="lead">Test Questions</p> 
+            </div>
+            <div class="col-md-3 mb-3">
+                <h2 class="display-4 text-primary">100%</h2>
+                <p class="lead">Accurate Results</p> 
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

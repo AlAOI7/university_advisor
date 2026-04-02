@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ major.name }}</h3>
+                    <p class="mb-0">Category: {{ major.category.name }}</p>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Major Description:</h5>
+                    <p class="card-text">{{ major.description }}</p>
+                    
+                    <hr>
+                    
+                    <h5 class="card-title">Required Skills:</h5>
+                    <p class="card-text">{{ major.required_skills }}</p>
+                    
+                    <hr>
+                    
+                    <h5 class="card-title">Nature of Study:</h5>
+                    <p class="card-text">{{ major.study_nature }}</p>
+                    
+                    <hr>
+                    
+                    <h5 class="card-title">Suitable Personality Types:</h5>
+                    <p class="card-text">{{ major.personality_types }}</p>
+                    
+                    <hr>
+                    
+                    <h5 class="card-title">Job Opportunities:</h5>
+                    <p class="card-text">{{ major.job_opportunities }}</p>
+                    
+                    <hr>
+                    
+                    <h5 class="card-title">Average Salary:</h5>
+                    <p class="card-text">{{ major.average_salary }}</p>
+                    
+                    <hr>
+                    
+                    <h5 class="card-title">Universities Offering This Major:</h5>
+                    <p class="card-text">{{ major.universities }}</p>
+                </div>
+            </div>
+            
+            
+            {% if related_majors %}
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Related Majors</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for related_major in related_majors %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6>{{ related_major.name }}</h6>
+                                    <p class="small">{{ related_major.description|truncatechars:100 }}</p>
+                                    <a href="{% url 'majors:major_detail' related_major.id %}" class="btn btn-sm btn-outline-primary">
+                                        Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'majors:catalog' %}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Catalog
+                </a>
+                {% if user.is_authenticated %}
+                <button class="btn btn-primary" onclick="saveMajor({{ major.id }})">
+                    <i class="fas fa-bookmark me-2"></i> Save to Favorites
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function saveMajor(majorId) {
+        $.ajax({
+            url: '{% url "majors:save_major" %}',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: {
+                major_id: majorId
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Major saved to favorites successfully!');
+                }
+            },
+            error: function() {
+                alert('An error occurred while saving.');
+            }
+        });
+    }
+</script>
+{% endblock %}

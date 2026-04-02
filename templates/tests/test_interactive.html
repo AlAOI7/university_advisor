@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+
+{% block title %}Major Selection Test - University Advisor{% endblock %} 
+
+{% block content %}
+<div class="container py-5">
+    <!-- Progress Bar -->
+    <div class="test-progress-container mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Test Progress</h5> 
+            <span class="progress-text"><span id="current-question">1</span> of <span id="total-questions">3</span></span>
+        </div>
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                 id="progress-bar" role="progressbar" style="width: 0%">0%</div>
+        </div>
+    </div>
+
+    <!-- Test Card -->
+    <div class="card shadow-lg border-0 test-card">
+        <div class="card-header bg-gradient-primary text-white text-center py-4">
+            <h3 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Major Selection Test</h3> 
+            <p class="mb-0 mt-2">Answer the following questions honestly to help us determine the best major for you</p> 
+        </div>
+        
+        <div class="card-body p-5">
+            <!-- Questions Container -->
+            <form id="test-form" method="POST">
+                {% csrf_token %}
+                
+                <!-- Question 1: Favorite Subjects -->
+                
+                <div class="question-slide active" data-question="1">
+                    <div class="question-header mb-4">
+                        <span class="badge bg-info mb-2">Subjects</span> 
+                        <h4 class="question-text">Which subjects do you prefer and enjoy studying?</h4> 
+                    </div>
+                    <div class="options-container">
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q1" id="q1a" value="math" required>
+                            <label class="form-check-label" for="q1a">
+                                <i class="fas fa-calculator text-primary me-2"></i>
+                                <span>Mathematics and Physics</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q1" id="q1b" value="science">
+                            <label class="form-check-label" for="q1b">
+                                <i class="fas fa-flask text-success me-2"></i>
+                                <span>Chemistry and Biology</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q1" id="q1c" value="language">
+                            <label class="form-check-label" for="q1c">
+                                <i class="fas fa-book text-warning me-2"></i>
+                                <span>Languages and Literature</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q1" id="q1d" value="social">
+                            <label class="form-check-label" for="q1d">
+                                <i class="fas fa-users text-info me-2"></i>
+                                <span>History, Geography, and Social Sciences</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q1" id="q1e" value="tech">
+                            <label class="form-check-label" for="q1e">
+                                <i class="fas fa-laptop-code text-danger me-2"></i>
+                                <span>computers and Technology</span> 
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 2: Skills -->
+                
+                <div class="question-slide" data-question="2">
+                    <div class="question-header mb-4">
+                        <span class="badge bg-success mb-2">Personal Skills</span> 
+                        <h4 class="question-text">What are your strongest skills?</h4> 
+                    </div>
+                    <div class="options-container">
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q2" id="q2a" value="analytical" required>
+                            <label class="form-check-label" for="q2a">
+                                <i class="fas fa-brain text-primary me-2"></i>
+                                <span>Analytical Thinking and Problem Solving</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q2" id="q2b" value="creative">
+                            <label class="form-check-label" for="q2b">
+                                <i class="fas fa-lightbulb text-warning me-2"></i>
+                                <span>Creativity and Innovation</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q2" id="q2c" value="communication">
+                            <label class="form-check-label" for="q2c">
+                                <i class="fas fa-comments text-info me-2"></i>
+                                <span>Communication and Persuasion</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q2" id="q2d" value="leadership">
+                            <label class="form-check-label" for="q2d">
+                                <i class="fas fa-user-tie text-success me-2"></i>
+                                <span>Leadership and Management</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q2" id="q2e" value="technical">
+                            <label class="form-check-label" for="q2e">
+                                <i class="fas fa-cogs text-danger me-2"></i>
+                                <span>Technical and Practical Skills</span> 
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 3: Free Time -->
+                
+                <div class="question-slide" data-question="3">
+                    <div class="question-header mb-4">
+                        <span class="badge bg-warning mb-2">Interests</span> 
+                        <h4 class="question-text">How do you prefer to spend your free time?</h4> 
+                    </div>
+                    <div class="options-container">
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q3" id="q3a" value="reading" required>
+                            <label class="form-check-label" for="q3a">
+                                <i class="fas fa-book-open text-primary me-2"></i>
+                                <span>Reading and Writing</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q3" id="q3b" value="design">
+                            <label class="form-check-label" for="q3b">
+                                <i class="fas fa-palette text-danger me-2"></i>
+                                <span>Drawing and Design</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q3" id="q3c" value="programming">
+                            <label class="form-check-label" for="q3c">
+                                <i class="fas fa-code text-success me-2"></i>
+                                <span>Programming and Technology</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q3" id="q3d" value="sports">
+                            <label class="form-check-label" for="q3d">
+                                <i class="fas fa-running text-warning me-2"></i>
+                                <span>Sports and Physical Activities</span> 
+                            </label>
+                        </div>
+                        <div class="form-check option-card">
+                            <input class="form-check-input" type="radio" name="q3" id="q3e" value="helping">
+                            <label class="form-check-label" for="q3e">
+                                <i class="fas fa-hands-helping text-info me-2"></i>
+                                <span>Helping Others and Volunteering</span> 
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- More questions would be here... -->
+                
+            </form>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="card-footer bg-light py-4">
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary btn-lg" id="prev-btn" disabled>
+                    <i class="fas fa-arrow-right me-2"></i>Previous 
+                </button>
+                <button type="button" class="btn btn-success btn-lg" id="next-btn">
+                    Next<i class="fas fa-arrow-left ms-2"></i> 
+                </button>
+                <button type="button" class="btn btn-primary btn-lg d-none" id="submit-btn">
+                    <i class="fas fa-check-circle me-2"></i>Finish Test 
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-save Indicator -->
+    <div class="text-center mt-3">
+        <small class="text-muted">
+            <i class="fas fa-save me-1"></i>
+            <span id="save-status">Answers saved automatically</span> 
+        </small>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.test-card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.question-slide {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+
+.question-slide.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.question-header {
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.question-text {
+    font-weight: 600;
+    color: #333;
+}
+
+.option-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.option-card:hover {
+    background: #fff;
+    border-color: #667eea;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.option-card input[type="radio"]:checked ~ label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.option-card input[type="radio"]:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.option-card label {
+    cursor: pointer;
+    margin-bottom: 0;
+    font-size: 16px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.progress {
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-lg {
+    padding: 12px 30px;
+    font-size: 18px;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentQuestion = 1;
+const totalQuestions = 3; // Number of questions available
+let answers = {};
+
+// Load saved answers from localStorage
+function loadSavedAnswers() {
+    const saved = localStorage.getItem('test_answers');
+    if (saved) {
+        answers = JSON.parse(saved);
+        // Populate form with saved answers
+        Object.keys(answers).forEach(key => {
+            const input = document.querySelector(`input[name="${key}"][value="${answers[key]}"]`);
+            if (input) input.checked = true;
+        });
+    }
+}
+
+// Save answers
+function saveAnswers() {
+    localStorage.setItem('test_answers', JSON.stringify(answers));
+    document.getElementById('save-status').innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Saved'; 
+    setTimeout(() => {
+        document.getElementById('save-status').innerHTML = '<i class="fas fa-save me-1"></i>Answers saved automatically'; 
+    }, 2000);
+}
+
+// Update progress
+function updateProgress() {
+    const progress = (currentQuestion / totalQuestions) * 100;
+    document.getElementById('progress-bar').style.width = progress + '%';
+    document.getElementById('progress-bar').textContent = Math.round(progress) + '%';
+    document.getElementById('current-question').textContent = currentQuestion;
+}
+
+// Show question
+function showQuestion(n) {
+    const slides = document.querySelectorAll('.question-slide');
+    slides.forEach(slide => slide.classList.remove('active'));
+   const currentSlide = document.querySelector(`.question-slide[data-question="${n}"]`);
+    if (currentSlide) currentSlide.classList.add('active');
+    
+    // Update buttons
+    document.getElementById('prev-btn').disabled = (n === 1);
+    document.getElementById('next-btn').classList.toggle('d-none', n === totalQuestions);
+    document.getElementById('submit-btn').classList.toggle('d-none', n !== totalQuestions);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    updateProgress();
+}
+
+// Next question
+document.getElementById('next-btn').addEventListener('click', () => {
+    // Check if current question is answered
+    const currentInput = document.querySelector(`.question-slide[data-question="${currentQuestion}"] input:checked`);
+    if (!currentInput) {
+        alert('Please answer the current question before proceeding'); 
+        return;
+    }
+    
+    if (currentQuestion < totalQuestions) {
+        currentQuestion++;
+        showQuestion(currentQuestion);
+    }
+});
+
+// Previous question
+document.getElementById('prev-btn').addEventListener('click', () => {
+    if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+    }
+});
+
+// Save answer on change
+document.querySelectorAll('input[type="radio"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+        answers[e.target.name] = e.target.value;
+        saveAnswers();
+    });
+});
+
+// Submit test
+document.getElementById('submit-btn').addEventListener('click', async () => {
+    if (confirm('Are you sure you want to finish the test?')) { 
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const response = await fetch('/tests/submit/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ answers: answers })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                localStorage.removeItem('test_answers');
+                window.location.href = '/advisor/analysis/' + data.result_id;
+            } else {
+                alert('Error: ' + data.error); 
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Connection error'); 
+        }
+    }
+});
+
+// Initialize
+loadSavedAnswers();
+showQuestion(currentQuestion);
+</script>
+{% endblock %}

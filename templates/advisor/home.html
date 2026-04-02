@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Smart University Advisor - Home Page{% endblock %} 
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">Smart University Advisor</h1> 
+        <p class="lead mb-4">A platform that helps you choose the right university major based on your skills and personal interests</p> 
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'tests:test_home' %}" class="btn btn-light btn-lg px-4 py-3">
+                <i class="fas fa-play-circle me-2"></i>Start Test Now 
+            </a>
+            <a href="{% url 'majors:catalog' %}" class="btn btn-outline-light btn-lg px-4 py-3">
+                <i class="fas fa-book me-2"></i>Browse Majors 
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-3">How do we help you choose your major?</h2> 
+            <p class="lead text-muted">We provide comprehensive tools and resources to help you make the right decision</p> 
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for feature in features %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-4">
+                        {% if forloop.counter == 1 %}
+                        <i class="fas fa-brain fa-3x text-primary"></i>
+                        {% elif forloop.counter == 2 %}
+                        <i class="fas fa-graduation-cap fa-3x text-success"></i>
+                        {% elif forloop.counter == 3 %}
+                        <i class="fas fa-book-open fa-3x text-warning"></i>
+                        {% endif %}
+                    </div>
+                    <h4 class="card-title mb-3">{{ feature.title }}</h4>
+                    <p class="card-text text-muted">{{ feature.desc }}</p>
+                    {% if forloop.counter == 1 %}
+                    <a href="{% url 'tests:test_home' %}" class="btn btn-outline-primary mt-2">Start Test</a> 
+                    {% elif forloop.counter == 2 %}
+                    <a href="{% url 'majors:catalog' %}" class="btn btn-outline-success mt-2">Browse Now</a> 
+                    {% elif forloop.counter == 3 %}
+                    <a href="{% url 'majors:courses_books' %}" class="btn btn-outline-warning mt-2">Browse Resources</a> 
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <h3 class="display-6 text-primary">500+</h3>
+                    <p class="text-muted">University Major</p> 
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <h3 class="display-6 text-success">10,000+</h3>
+                    <p class="text-muted">Student Benefited</p> 
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <h3 class="display-6 text-warning">95%</h3>
+                    <p class="text-muted">User Satisfaction</p> 
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <h3 class="display-6 text-info">50+</h3>
+                    <p class="text-muted">Partner University</p> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How it works -->
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-3">How does the platform work?</h2> 
+            <p class="lead text-muted">4 simple steps to determine the right major for you</p> 
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="step-card text-center p-4">
+                <div class="step-number">1</div>
+                <i class="fas fa-clipboard-list fa-2x text-primary mb-3"></i>
+                <h5>Tests</h5> 
+                <p class="text-muted">Complete aptitude and personal skills tests</p> 
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="step-card text-center p-4">
+                <div class="step-number">2</div>
+                <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                <h5>Analysis</h5> 
+                <p class="text-muted">We analyze your results using AI</p> 
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="step-card text-center p-4">
+                <div class="step-number">3</div>
+                <i class="fas fa-list-alt fa-2x text-warning mb-3"></i>
+                <h5>Recommendations</h5> 
+                <p class="text-muted">We provide you a list of suitable majors</p> 
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="step-card text-center p-4">
+                <div class="step-number">4</div>
+                <i class="fas fa-road fa-2x text-info mb-3"></i>
+                <h5>The Path</h5> 
+                <p class="text-muted">We draw a study plan for the selected major</p> 
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Are you ready to discover your university major?</h2> 
+        <p class="lead mb-4">Start your journey now with the Smart University Advisor</p> 
+        <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg px-5">
+            <i class="fas fa-user-plus me-2"></i>Register for Free 
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 120px 0;
+        text-align: center;
+    }
+    .feature-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.1);
+    }
+    .stat-item {
+        padding: 20px;
+    }
+    .step-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+    }
+    .step-card:hover {
+        transform: translateY(-5px);
+    }
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-weight: bold;
+        font-size: 18px;
+    }
+</style>
+{% endblock %}

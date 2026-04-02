@@ -1,0 +1,678 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Personality Test{% endblock %} 
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', 'Cairo', Tahoma, sans-serif;
+        direction: ltr; /* Changed to LTR */
+    }
+    
+    .test-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        min-height: 100vh;
+    }
+    
+    /* Header */
+    .test-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .test-header h1 {
+        font-size: 36px;
+        margin-bottom: 15px;
+        font-weight: 800;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .test-header p {
+        font-size: 18px;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    /* Progress Section */
+    .progress-section {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        color: white;
+    }
+    
+    .progress-stats {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .progress-percentage {
+        background: white;
+        color: #667eea;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-bar-container {
+        background: rgba(255, 255, 255, 0.2);
+        height: 12px;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-fill {
+        background: linear-gradient(90deg, #4cd964, #5ac8fa);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    /* Questions Grid */
+    .questions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .question-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        border: 3px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .question-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    
+    .question-card.answered {
+        border-color: #4cd964;
+        background: linear-gradient(135deg, #ffffff, #f8fff9);
+    }
+    
+    .question-card.answered::before {
+        content: '✓';
+        position: absolute;
+        top: 15px;
+        right: 15px; /* Changed from left to right for LTR */
+        background: #4cd964;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .question-number {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    
+    .question-text {
+        flex: 1;
+        margin-left: 15px; /* Changed from margin-right to margin-left for LTR */
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        line-height: 1.5;
+    }
+    
+    /* Choices */
+    .choices-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .choice-item {
+        position: relative;
+    }
+    
+    .choice-item input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .choice-label {
+        display: block;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 15px;
+        font-weight: 500;
+        color: #495057;
+        line-height: 1.4;
+        position: relative;
+        padding-left: 50px; /* Changed from padding-right to padding-left for LTR */
+    }
+    
+    .choice-label:hover {
+        background: #f0f2ff;
+        border-color: #a5b4fc;
+    }
+    
+    .choice-label::before {
+        content: '';
+        position: absolute;
+        left: 20px; /* Changed from right to left for LTR */
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 50%;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .choice-item input[type="radio"]:checked + .choice-label {
+        background: rgba(102, 126, 234, 0.1);
+        border-color: #667eea;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .choice-item input[type="radio"]:checked + .choice-label::before {
+        border-color: #667eea;
+        background: #667eea;
+        box-shadow: inset 0 0 0 4px white;
+    }
+    
+    /* Submit Section */
+    .submit-section {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        margin-top: 30px;
+    }
+    
+    .submit-content {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .submit-content h3 {
+        font-size: 24px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .submit-content p {
+        color: #6c757d;
+        font-size: 16px;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+    
+    .submit-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 18px 60px;
+        font-size: 18px;
+        font-weight: 700;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .submit-btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+    
+    .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .submit-btn i {
+        font-size: 20px;
+    }
+    
+    /* Success Modal */
+    .success-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .success-modal.active {
+        display: flex;
+    }
+    
+    .success-card {
+        background: white;
+        border-radius: 25px;
+        padding: 50px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    }
+    
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #4cd964, #5ac8fa);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        font-size: 48px;
+        color: white;
+        animation: bounce 1s ease;
+    }
+    
+    .success-card h2 {
+        font-size: 32px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-weight: 800;
+    }
+    
+    .success-card p {
+        color: #6c757d;
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+    
+    .spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .questions-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .test-header h1 {
+            font-size: 28px;
+        }
+        
+        .progress-section {
+            padding: 20px;
+        }
+        
+        .question-card {
+            padding: 25px;
+        }
+        
+        .submit-section {
+            padding: 30px 20px;
+        }
+        
+        .submit-btn {
+            padding: 16px 40px;
+            font-size: 16px;
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .progress-info {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .question-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .question-text {
+            margin-right: 0;
+        }
+        
+        .success-card {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="test-container">
+    <div class="test-header">
+        <h1>🎯 Personality and Career Aptitude Test</h1> 
+        <p>Answer all questions honestly to get an accurate analysis of your personality and interests</p> 
+    </div>
+    
+    <div class="progress-section">
+        <div class="progress-info">
+            <div class="progress-stats" id="progressStats">
+                Answered <span id="answeredCount">0</span> of {{ questions|length }} questions 
+            </div>
+            <div class="progress-percentage" id="progressPercentage">0%</div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+    </div>
+    
+    <form id="testForm" method="post" action="{% url 'tests:submit_test' %}">
+        {% csrf_token %}
+        
+        <div class="questions-grid">
+            {% for question in questions %}
+            <div class="question-card" id="question-{{ question.id }}" data-question-id="{{ question.id }}">
+                <div class="question-header">
+                    <div class="question-number">{{ forloop.counter }}</div>
+                    <div class="question-text">{{ question.text }}</div>
+                </div>
+                
+                <div class="choices-list">
+                    {% for choice in question.choices.all %}
+                    <div class="choice-item">
+                        <input type="radio" 
+                               name="question_{{ question.id }}" 
+                               id="choice_{{ choice.id }}" 
+                               value="{{ choice.id }}"
+                               data-question-id="{{ question.id }}">
+                        <label for="choice_{{ choice.id }}" class="choice-label">
+                            {{ choice.text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="submit-section">
+            <div class="submit-content">
+                <h3>Have you finished all answers?</h3> 
+                <p>Make sure you have answered all questions before submitting to get the best results</p> 
+                <button type="button" class="submit-btn" id="submitBtn" onclick="showSubmitConfirmation()" disabled>
+                    <i>✓</i>
+                    <span>Submit Answers and Analyze Results</span> 
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Success Modal -->
+<div class="success-modal" id="successModal">
+    <div class="success-card">
+        <div class="success-icon">✓</div>
+        <h2>Analyzing Your Answers</h2> 
+        <p>We are analyzing your answers to provide a detailed report on your personality and career interests</p> 
+        <div class="spinner"></div>
+        <p style="font-size: 14px; margin-top: 20px; color: #999;">
+            This process may take a few seconds... 
+        </p>
+    </div>
+</div>
+
+<script>
+// Initialize variables
+const totalQuestions = {{ questions|length }};
+let answeredQuestions = new Set();
+let selectedAnswers = {};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to all radio buttons
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const questionId = this.dataset.questionId;
+            const choiceId = this.value;
+            
+            // Store the answer
+            selectedAnswers[questionId] = choiceId;
+            
+            // Mark question as answered if not already
+            if (!answeredQuestions.has(questionId)) {
+                answeredQuestions.add(questionId);
+                
+                // Add answered class to question card
+                const questionCard = document.getElementById(`question-${questionId}`);
+                questionCard.classList.add('answered');
+                
+                // Update progress
+                updateProgress();
+            }
+        });
+    });
+    
+    // Initialize progress
+    updateProgress();
+});
+
+// Update progress bar and stats
+function updateProgress() {
+    const answeredCount = answeredQuestions.size;
+    const percentage = Math.round((answeredCount / totalQuestions) * 100);
+    
+    // Update stats
+    document.getElementById('answeredCount').textContent = answeredCount;
+    document.getElementById('progressPercentage').textContent = `${percentage}%`;
+    document.getElementById('progressFill').style.width = `${percentage}%`;
+    
+    // Enable/disable submit button
+    const submitBtn = document.getElementById('submitBtn');
+    if (answeredCount === totalQuestions) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.7';
+    }
+}
+
+// Show confirmation and submit
+function showSubmitConfirmation() {
+        alert('Please answer all questions before submitting'); 
+    }
+    
+    // Show success modal
+    const modal = document.getElementById('successModal');
+    modal.classList.add('active');
+    
+    // Disable body scroll
+    document.body.style.overflow = 'hidden';
+    
+    // Submit form after 3 seconds (for visual effect)
+    setTimeout(() => {
+        document.getElementById('testForm').submit();
+    }, 3000);
+}
+
+// Quick navigation by clicking on question cards
+document.querySelectorAll('.question-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        // Only navigate if the click wasn't on a radio or label
+        if (!e.target.closest('input[type="radio"]') && !e.target.closest('.choice-label')) {
+            const questionId = this.dataset.questionId;
+            const questionElement = document.getElementById(`question-${questionId}`);
+            
+            // Scroll to the question
+            questionElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Add visual feedback
+            questionElement.style.animation = 'none';
+            setTimeout(() => {
+                questionElement.style.animation = 'bounce 0.5s ease';
+            }, 10);
+        }
+    });
+});
+
+// Keyboard navigation support
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !document.getElementById('successModal').classList.contains('active')) {
+        if (answeredQuestions.size === totalQuestions) {
+            showSubmitConfirmation();
+        }
+    }
+});
+
+// Check if all questions are answered on page load (for browser back/refresh)
+window.addEventListener('load', function() {
+    // Check for previously selected answers
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        const questionId = radio.dataset.questionId;
+        answeredQuestions.add(questionId);
+        
+        const questionCard = document.getElementById(`question-${questionId}`);
+        if (questionCard) {
+            questionCard.classList.add('answered');
+        }
+    });
+    
+    updateProgress();
+});
+</script>
+
+{% if messages %}
+<script>
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            alert('{{ message }}');
+        {% endif %}
+    {% endfor %}
+</script>
+{% endif %}
+{% endblock %}

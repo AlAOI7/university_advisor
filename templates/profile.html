@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{# {% load crispy_forms_tags %} #}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i> Profile</h4> 
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <fieldset class="mb-4">
+                            <legend class="border-bottom pb-2">Account Information</legend> 
+                            {{ u_form.as_p }}
+                        </fieldset>
+                        
+                        <fieldset class="mb-4">
+                            <legend class="border-bottom pb-2">Personal Information</legend> 
+                            {{ p_form.as_p }}
+                        </fieldset>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Update Profile</button> 
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Previous Test Results -->
+            
+            <div class="card shadow mt-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-history me-2"></i> Previous Test Results</h4> 
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for result in user.testresult_set.all|slice:":5" %}
+                        <a href="{% url 'tests:test_results' result.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Test {{ forloop.counter }}</h5> 
+                                <small>{{ result.completed_at|date:"Y/m/d" }}</small>
+                            </div>
+                            <p class="mb-1">Personality Type: {{ result.personality_type }}</p> 
+                            <small>Click to view details</small> 
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item">You haven't taken any tests yet.</div> 
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

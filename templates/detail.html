@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ major.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">About Major</h5> 
+                    <p class="card-text">{{ major.description }}</p>
+                    
+                    <hr>
+                    
+                    <h5>Required Skills</h5> 
+                    <p>{{ major.required_skills }}</p>
+                    
+                    <h5>Study Nature</h5> 
+                    <p>{{ major.study_nature }}</p>
+                    
+                    <h5>Job Opportunities</h5> 
+                    <p>{{ major.job_opportunities }}</p>
+                    
+                    <h5>Universities Offering It</h5> 
+                    <p>{{ major.universities }}</p>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Average Salary:</strong> {{ major.average_salary }} 
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Suitable Personality Types:</strong> {{ major.personality_types }} 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Related Majors</h5> 
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for related in related_majors %}
+                    <a href="{% url 'majors:major_detail' related.id %}" class="list-group-item list-group-item-action">
+                        {{ related.name }}
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item">No related majors found.</div> 
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Does this major suit you?</h5> 
+                </div>
+                <div class="card-body">
+                    <p>Take the personality test to find out which majors suit your personality.</p> 
+                    <a href="{% url 'tests:test_home' %}" class="btn btn-success w-100">
+                        Start Test Now 
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

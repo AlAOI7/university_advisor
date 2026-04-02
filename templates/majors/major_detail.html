@@ -1,0 +1,180 @@
+<!-- templates/majors/major_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Major Information -->
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ major.name }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ major.description }}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Basic Information:</h5> 
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><strong>Duration:</strong> {{ major.duration }}</li> 
+                                <li class="mb-2"><strong>Level:</strong> {{ major.get_level_display }}</li> 
+                                <li class="mb-2"><strong>Avg Salary:</strong> {{ major.average_salary }}</li> 
+                                <li class="mb-2"><strong>Demand Level:</strong> {{ major.demand_level }}</li> 
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Requirements:</h5> 
+                            <p>{{ major.requirements|linebreaks }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5>Job Opportunities:</h5> 
+                        <p>{{ major.job_opportunities|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reviews -->
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Student Reviews</h5> 
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>{{ review.user.username }}</strong>
+                                <div>
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p>{{ review.review_text }}</p>
+                            <small class="text-muted">{{ review.created_at|date:"Y-m-d" }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No reviews yet.</p> 
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Related Courses -->
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Suggested Courses</h5> 
+                </div>
+                <div class="card-body">
+                    {% if related_courses %}
+                        {% for course in related_courses %}
+                        <div class="mb-3">
+                            <h6>{{ course.title }}</h6>
+                            <p class="small text-muted">{{ course.description|truncatewords:20 }}</p>
+                            <a href="{{ course.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-external-link-alt me-1"></i>Visit Course 
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No suggested courses.</p> 
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Related Books -->
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Suggested Books</h5> 
+                </div>
+                <div class="card-body">
+                    {% if related_books %}
+                        {% for book in related_books %}
+                        <div class="mb-3">
+                            <h6>{{ book.title }}</h6>
+                            <p class="small text-muted">By {{ book.author }}</p> 
+                            <a href="{{ book.download_url }}" target="_blank" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-download me-1"></i>Download 
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No suggested books.</p> 
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Add Review -->
+            
+            {% if user.is_authenticated %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Add Your Review</h5> 
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'majors:add_review' major.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label> 
+                            <div class="rating">
+                                {% for i in "54321" %}
+                                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                                <label for="star{{ i }}" title="{{ i }} stars">★</label> 
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Review</label> 
+                            <textarea name="review_text" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Submit Review</button> 
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+.rating input {
+    display: none;
+}
+.rating label {
+    cursor: pointer;
+    font-size: 2rem;
+    color: #ddd;
+    transition: color 0.2s;
+}
+.rating input:checked ~ label,
+.rating label:hover,
+.rating label:hover ~ label {
+    color: #ffc107;
+}
+.rating input:checked + label:hover,
+.rating input:checked ~ label:hover,
+.rating label:hover ~ input:checked ~ label {
+    color: #ffc107;
+}
+</style>
+{% endblock %}

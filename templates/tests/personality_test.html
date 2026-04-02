@@ -1,0 +1,456 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Personality & Aptitude Test - University Advisor{% endblock %} 
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --success: #10b981;
+        --bg-light: #f8fafc;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* direction: ltr; Implicit LTR */
+    }
+
+    .test-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .test-header {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 20px 60px var(--shadow);
+        text-align: center;
+    }
+
+    .test-header h1 {
+        color: var(--primary);
+        font-size: 2.5em;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .test-header p {
+        color: var(--text-muted);
+        font-size: 1.1em;
+        line-height: 1.6;
+    }
+
+    .progress-bar-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px var(--shadow);
+    }
+
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.95em;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .progress-bar {
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        border-radius: 10px;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .question-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 25px;
+        box-shadow: 0 15px 50px var(--shadow);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .question-number {
+        font-size: 0.9em;
+        color: var(--primary);
+        font-weight: 600;
+        background: #eef2ff;
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    .question-category {
+        font-size: 0.85em;
+        color: var(--text-muted);
+        background: #f3f4f6;
+        padding: 6px 14px;
+        border-radius: 15px;
+    }
+
+    .question-text {
+        font-size: 1.3em;
+        color: var(--text-dark);
+        margin-bottom: 30px;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+
+    .choices-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .choice-option {
+        position: relative;
+    }
+
+    .choice-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .choice-label {
+        display: flex;
+        align-items: center;
+        padding: 18px 24px;
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .choice-label:hover {
+        background: #f0f9ff;
+        border-color: var(--primary);
+        transform: translateX(3px); /* Changed from -3px to 3px for LTR hover effect if desired, or keep generic */
+    }
+
+    .choice-option input[type="radio"]:checked + .choice-label {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    .choice-text {
+        font-size: 1.05em;
+        color: var(--text-dark);
+        flex: 1;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 14px 32px;
+        font-size: 1.05em;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: var(--text-dark);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #e5e7eb;
+    }
+
+    .tips-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 30px;
+        box-shadow: 0 10px 30px var(--shadow);
+    }
+
+    .tips-section h3 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-size: 1.3em;
+    }
+
+    .tips-section ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .tips-section li {
+        padding: 10px 0 10px 30px; /* Adjusted padding for LTR */
+        position: relative;
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+
+    .tips-section li:before {
+        content: '✓';
+        position: absolute;
+        left: 0; /* Positioned left for LTR */
+        color: var(--success);
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+
+    @media (max-width: 768px) {
+        .test-header h1 {
+            font-size: 2em;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+        }
+
+        .navigation-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <!-- Test Header -->
+    <div class="test-header">
+        <h1>🎯 Personality and Academic Aptitude Test</h1> 
+        <p>
+            Answer 10 questions to help us discover your personality and academic interests. 
+            <br>
+            <strong>Expected Time:</strong> 2-3 minutes | You will get new questions on every visit 
+        </p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-info">
+            <span id="progress-text">Answered <span id="current-q">0</span> of <span id="total-q">10</span> questions</span> 
+            <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Test Form -->
+    <form id="test-form" method="POST" action="{% url 'tests:submit_test' %}">
+        {% csrf_token %}
+        
+        <div id="questions-container">
+            <!-- Questions will be loaded dynamically -->
+        </div>
+
+        <div class="navigation-buttons" id="nav-buttons" style="display: none;">
+            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+ ✓ Finish Test 
+            </button>
+        </div>
+    </form>
+
+    <!-- Tips -->
+    <div class="tips-section">
+        <h3>💡 Tips for Best Results</h3> 
+        <ul>
+            <li>Answer honestly and based on how you actually feel</li> 
+            <li>There are no right or wrong answers</li> 
+            <li>Take your time to think before answering</li> 
+            <li>You can retake the test at any time to get new questions</li> 
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Question Data
+const questions = {{ questions_json|safe }};
+const answers = {};
+
+// Categories in English
+const categoryNames = {
+    'personality': 'Personality', 
+    'skills': 'Skills', 
+    'academic': 'Academic Interests', 
+    'goals': 'Future Goals' 
+};
+
+// Display all questions at once
+function displayAllQuestions() {
+    const container = document.getElementById('questions-container');
+    
+    let html = '';
+    
+    questions.forEach((question, i) => {
+        html += `
+            <div class="question-card">
+                <div class="question-header">
+                    <span class="question-number">Question ${i + 1} / ${questions.length}</span>
+                    <span class="question-category">${categoryNames[question.category] || question.category}</span>
+                </div>
+                <div class="question-text">${question.text}</div>
+                <div class="choices-container">
+                    ${question.choices.map((choice, choiceIndex) => `
+                        <div class="choice-option">
+                            <input type="radio" 
+                                   name="question_${i}" 
+                                   id="choice_${i}_${choiceIndex}" 
+                                   value="${choiceIndex}"
+                                   data-question-index="${i}">
+                            <label for="choice_${i}_${choiceIndex}" class="choice-label">
+                                <span class="choice-text">${choice.text}</span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+
+    // Add event listeners to choices
+    document.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const questionIndex = parseInt(e.target.getAttribute('data-question-index'));
+            answers[questionIndex] = parseInt(e.target.value);
+            updateProgress();
+            updateSubmitButton();
+        });
+    });
+
+    updateProgress();
+}
+
+// Update progress bar
+function updateProgress() {
+    const answeredCount = Object.keys(answers).length;
+    const progress = (answeredCount / questions.length) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('current-q').textContent = answeredCount;
+    document.getElementById('total-q').textContent = questions.length;
+    document.getElementById('progress-percent').textContent = Math.round(progress) + '%';
+}
+
+// Update submit button
+function updateSubmitButton() {
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = Object.keys(answers).length !== questions.length;
+}
+
+// Submit form
+document.getElementById('test-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Check if all questions are answered
+    const unanswered = questions.length - Object.keys(answers).length;
+    if (unanswered > 0) {
+        alert(`Please answer all questions. Remaining: ${unanswered}`); 
+        return;
+    }
+    
+    // Compile data
+    const payload = {};
+    Object.keys(answers).forEach(questionIndex => {
+        const question = questions[questionIndex];
+        const choiceIndex = answers[questionIndex];
+        const choice = question.choices[choiceIndex];
+        
+        payload[`answer_${questionIndex}`] = {
+            question_id: questionIndex,
+            question_text: question.text,
+            choice_index: choiceIndex,
+            choice_text: choice.text,
+            traits: choice.traits,
+            value: choice.value,
+            category: question.category
+        };
+    });
+    
+    // Send
+    fetch('{% url "tests:submit_test" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('Error: ' + (data.error || 'Unknown')); 
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending. Please try again.'); 
+    });
+});
+
+// Display all questions on load
+window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('nav-buttons').style.display = 'flex';
+    displayAllQuestions();
+});
+</script>
+{% endblock %}

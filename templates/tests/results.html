@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Results{% endblock %} 
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .results-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+    
+    .result-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        margin-bottom: 25px;
+    }
+    
+    .success-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .success-icon {
+        font-size: 80px;
+        margin-bottom: 15px;
+    }
+    
+    .success-header h1 {
+        color: #2c3e50;
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    
+    .success-header p {
+        color: #6c757d;
+        font-size: 16px;
+    }
+    
+    .result-section {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .result-section:last-child {
+        border-bottom: none;
+    }
+    
+    .section-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .score-display {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .score-number {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .score-label {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+    
+    .summary-text {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        line-height: 1.8;
+        color: #495057;
+        white-space: pre-line;
+    }
+    
+    .majors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .major-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid #667eea; /* Changed from border-right to border-left for LTR */
+        transition: transform 0.2s;
+    }
+    
+    .major-item:hover {
+        transform: translateX(5px); /* Changed from -5px to 5px for LTR */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .major-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 16px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 15px 35px;
+        border: none;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .btn-secondary:hover {
+        background: #dee2e6;
+    }
+</style>
+
+<div class="results-container">
+    <div class="result-card">
+        <div class="success-header">
+            <div class="success-icon">🎉</div>
+            <h1>Your answers have been analyzed successfully!</h1> 
+            <p>Here are your personality and aptitude test results</p> 
+        </div>
+        
+        <div class="result-section">
+            <div class="section-title">
+                📊 Total Score 
+            </div>
+            <div class="score-display">
+                <div class="score-number">{{ result.score }}</div>
+                <div class="score-label">out of 100</div> 
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <div class="section-title">
+                📝 Results Summary 
+            </div>
+            <div class="summary-text">
+                {{ result.result_summary }}
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <div class="section-title">
+                🎓 Recommended Majors 
+            </div>
+            {% if recommended_majors %}
+            <div class="majors-grid">
+                {% for major in recommended_majors %}
+                <div class="major-item">
+                    <div class="major-name">{{ major }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: #6c757d; text-align: center;">
+                No recommendations available at the moment 
+            </p>
+            {% endif %}
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'tests:test_home' %}" class="btn btn-secondary">
+                🔄 Retake Test 
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                🏠 Return to Home 
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

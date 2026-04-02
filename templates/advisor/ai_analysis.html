@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Analysis - Smart University Advisor{% endblock %} 
+
+{% block content %}
+<!-- Page Header -->
+<div class="py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-robot me-3"></i>AI Analysis 
+                </h1>
+                <p class="lead mb-0">Intelligent system that analyzes your results and provides personalized recommendations based on your interests and abilities</p> 
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Results -->
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-3">AI Analysis Results</h2> 
+            <p class="lead text-muted">Based on your previous tests, here is a detailed analysis of your academic personality</p> 
+        </div>
+    </div>
+    
+    <!-- Charts and Statistics -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Key Strengths</h5> 
+                </div>
+                <div class="card-body">
+                    {% for strength in strengths %}
+                    <div class="strength-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold">{{ strength.name }}</span>
+                            <span class="text-primary">{{ strength.score }}/10</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ strength.percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Career Interests</h5> 
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <canvas id="interestsChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="row">
+                        {% for interest in interests %}
+                        <div class="col-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="color-dot me-2" style="background-color: {{ interest.color }};"></div>
+                                <span>{{ interest.name }}: {{ interest.value }}%</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommendations -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Smart Recommendations 
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for recommendation in recommendations %}
+                        <div class="col-md-4 mb-4">
+                            <div class="recommendation-card h-100 p-4 text-center">
+                                <div class="icon-wrapper mb-3">
+                                    <i class="fas {{ recommendation.icon }} fa-2x text-white"></i>
+                                </div>
+                                <h5 class="mb-3">{{ recommendation.title }}</h5>
+                                <p class="text-muted mb-3">{{ recommendation.description }}</p>
+                                <span class="badge bg-primary">{{ recommendation.match }}% Match</span> 
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Suggested Majors -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>Suggested Majors For You 
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Major</th> 
+                                    <th>Match</th> 
+                                    <th>Duration</th> 
+                                    <th>Fields</th> 
+                                    <th>Action</th> 
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for major in majors %}
+                                <tr>
+                                    <td>
+                                        <h6 class="mb-1">{{ major.name }}</h6>
+                                        <small class="text-muted">{{ major.field }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px; width: 100px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ major.match }}%">
+                                                {{ major.match }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ major.duration }}</td>
+                                    <td>
+                                        {% for job in major.jobs %}
+                                        <span class="badge bg-light text-dark mb-1">{{ job }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'majors:major_detail' major.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>Details 
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Development Plan -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="mb-3">Proposed Development Plan</h2> 
+                <p class="lead text-muted">Practical steps to develop your skills and increase your acceptance chances</p> 
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="plan-step text-center p-4">
+                    <div class="step-number bg-primary">1</div>
+                    <h5 class="my-3">Skills Development</h5> 
+                    <ul class="list-unstyled text-start">
+                        {% for skill in development_plan.skills %}
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {{ skill }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="plan-step text-center p-4">
+                    <div class="step-number bg-success">2</div>
+                    <h5 class="my-3">Suggested Courses</h5> 
+                    <ul class="list-unstyled text-start">
+                        {% for course in development_plan.courses %}
+                        <li class="mb-2">
+                            <i class="fas fa-video text-info me-2"></i>
+                            {{ course }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="plan-step text-center p-4">
+                    <div class="step-number bg-warning">3</div>
+                    <h5 class="my-3">Recommended Books</h5> 
+                    <ul class="list-unstyled text-start">
+                        {% for book in development_plan.books %}
+                        <li class="mb-2">
+                            <i class="fas fa-book text-primary me-2"></i>
+                            {{ book }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="plan-step text-center p-4">
+                    <div class="step-number bg-info">4</div>
+                    <h5 class="my-3">Suitable Universities</h5> 
+                    <ul class="list-unstyled text-start">
+                        {% for university in development_plan.universities %}
+                        <li class="mb-2">
+                            <i class="fas fa-university text-success me-2"></i>
+                            {{ university }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Download Report -->
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-5">
+                    <i class="fas fa-file-download fa-4x text-primary mb-4"></i>
+                    <h3 class="mb-4">Save Your Personal Analysis</h3> 
+                    <p class="lead text-muted mb-4">
+                        You can download this full report with all results and recommendations for later review 
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <button class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-download me-2"></i>Download PDF 
+                        </button>
+                        <button class="btn btn-success btn-lg px-4">
+                            <i class="fas fa-print me-2"></i>Print Report 
+                        </button>
+                        <button class="btn btn-outline-primary btn-lg px-4">
+                            <i class="fas fa-share-alt me-2"></i>Share Results 
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .color-dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .recommendation-card {
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+    .recommendation-card:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .recommendation-card .icon-wrapper {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .plan-step {
+        background: white;
+        border-radius: 15px;
+        height: 100%;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    .plan-step .step-number {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Interests Chart
+        const ctx = document.getElementById('interestsChart').getContext('2d');
+        const interestsChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Scientific', 'Humanities', 'Artistic', 'Technical', 'Social', 'Sports'], 
+                datasets: [{
+                    label: 'Interest Level', 
+                    data: [85, 60, 45, 90, 70, 55],
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

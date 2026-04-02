@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block title %}Majors - University Advisor{% endblock %} 
+
+{% block content %}
+<div class="container-fluid py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="hero-section text-center p-5 rounded-4">
+                <h1 class="display-3 fw-bold text-white mb-3">Discover Your University Major</h1> 
+                <p class="lead text-white-50 mb-4">Explore over 50 university majors with comprehensive information about each major</p> 
+                
+                <!-- Search Bar -->
+                <div class="search-container mx-auto" style="max-width: 600px;">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-0" id="search-input" 
+                               placeholder="Search for a major..."> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filter Majors</h5> 
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="difficulty-filter">
+                                <option value="">Difficulty Level</option> 
+                                <option value="low">Low</option> 
+                                <option value="medium">Medium</option> 
+                                <option value="high">High</option> 
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="demand-filter">
+                                <option value="">Demand Level</option> 
+                                <option value="low">Low</option> 
+                                <option value="medium">Medium</option> 
+                                <option value="high">High</option> 
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="category-filter">
+                                <option value="">Category</option> 
+                                <option value="engineering">Engineering</option> 
+                                <option value="medical">Medicine & Health</option> 
+                                <option value="science">Science</option> 
+                                <option value="business">Business & Management</option> 
+                                <option value="arts">Arts & Design</option> 
+                                <option value="social">Social Sciences</option> 
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-danger w-100" id="clear-filters">
+                                <i class="fas fa-times me-2"></i>Clear Filters 
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Majors Grid -->
+    <div class="row" id="majors-grid">
+        {% for major in majors %}
+        <div class="col-lg-4 col-md-6 mb-4 major-card" 
+             data-difficulty="{{ major.difficulty_level }}"
+             data-demand="{{ major.demand_level }}"
+             data-category="{{ major.category|default:'general' }}">
+            <div class="card h-100 shadow-hover border-0 rounded-4 overflow-hidden">
+                <!-- Card Image/Icon -->
+                <div class="card-img-top bg-gradient-{{ forloop.counter|divisibleby:5|yesno:'primary,success,info,warning,danger' }} p-4 text-center">
+                    <i class="fas fa-{{ major.icon|default:'graduation-cap' }} fa-4x text-white"></i>
+                </div>
+                
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">{{ major.name }}</h5> <!-- Use name (English) if available, falling back to name_ar if model logic handles it, but assuming name is correct field or property -->
+                    <p class="card-text text-muted small">{{ major.description|truncatewords:15 }}</p>
+                    
+                    <!-- Tags -->
+                    <div class="mb-3">
+                        <span class="badge bg-light text-dark me-1">
+                            <i class="fas fa-signal me-1"></i>
+                            {{ major.get_difficulty_level_display }}
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-fire me-1"></i>
+                            {{ major.get_demand_level_display }}
+                        </span>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="stats-section mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-dollar-sign me-1"></i>Avg Salary 
+                            </small>
+                            <strong class="text-success">{{ major.salary_range }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>Duration 
+                            </small>
+                            <strong>{{ major.duration|default:'4 Years' }}</strong> 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-0 p-3">
+                    <a href="{% url 'majors:major_detail' major.id %}" 
+                       class="btn btn-primary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Full Details 
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">No majors available at the moment</h4> 
+            <p class="text-muted">Try changing filters or check back later</p> 
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if majors.has_other_pages %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if majors.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ majors.previous_page_number }}">Previous</a> 
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in majors.paginator.page_range %}
+                    <li class="page-item {% if majors.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if majors.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ majors.next_page_number }}">Next</a> 
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.search-container input {
+    border-radius: 50px;
+    padding: 15px 20px;
+    font-size: 18px;
+}
+
+.search-container .input-group-text {
+    border-radius: 50px 0 0 50px;
+    padding: 15px 20px;
+}
+
+.shadow-hover {
+    transition: all 0.3s ease;
+}
+
+.shadow-hover:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.card-img-top {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-section {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.major-card {
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search functionality
+document.getElementById('search-input').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll('.major-card');
+    
+    cards.forEach(card => {
+        const title = card.querySelector('.card-title').textContent.toLowerCase();
+        const description = card.querySelector('.card-text').textContent.toLowerCase();
+        
+        if (title.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = 'block';
+            card.style.animation = 'fadeInUp 0.5s ease';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Filter functionality
+function applyFilters() {
+    const difficulty = document.getElementById('difficulty-filter').value;
+    const demand = document.getElementById('demand-filter').value;
+    const category = document.getElementById('category-filter').value;
+    const cards = document.querySelectorAll('.major-card');
+    
+    cards.forEach(card => {
+        const cardDifficulty = card.dataset.difficulty;
+        const cardDemand = card.dataset.demand;
+        const cardCategory = card.dataset.category;
+        
+        const difficultyMatch = !difficulty || cardDifficulty === difficulty;
+        const demandMatch = !demand || cardDemand === demand;
+        const categoryMatch = !category || cardCategory === category;
+        
+        if (difficultyMatch && demandMatch && categoryMatch) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+document.getElementById('difficulty-filter').addEventListener('change', applyFilters);
+document.getElementById('demand-filter').addEventListener('change', applyFilters);
+document.getElementById('category-filter').addEventListener('change', applyFilters);
+
+document.getElementById('clear-filters').addEventListener('click', () => {
+    document.getElementById('difficulty-filter').value = '';
+    document.getElementById('demand-filter').value = '';
+    document.getElementById('category-filter').value = '';
+    document.querySelectorAll('.major-card').forEach(card => {
+        card.style.display = 'block';
+    });
+});
+
+// Lazy load animation
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.animation = 'fadeInUp 0.5s ease';
+        }
+    });
+});
+
+document.querySelectorAll('.major-card').forEach(card => {
+    observer.observe(card);
+});
+</script>
+{% endblock %}

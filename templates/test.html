@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i> Aptitude and Interests Test</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Answer the following questions honestly to get the best results.</p>
+                    <hr>
+                    
+                    <form id="testForm">
+                        {% for question in questions %}
+                        <div class="question-card mb-4 p-3 border rounded">
+                            <h5 class="mb-3">Question {{ forloop.counter }}: {{ question.text }}</h5>
+                            <div class="choices">
+                                {% for choice in question.choices.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="question_{{ question.id }}" 
+                                           id="choice_{{ choice.id }}" 
+                                           value="{{ choice.id }}">
+                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                        {{ choice.text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="text-center mt-4">
+                            <button type="button" id="submitTest" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i> Get Results
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#submitTest').click(function() {
+        // Collect answers
+        var answers = {};
+        $('input[type=radio]:checked').each(function() {
+            var questionId = $(this).attr('name').replace('question_', '');
+            answers[questionId] = $(this).val();
+        });
+        
+        // Check if all questions are answered
+        var totalQuestions = {{ questions|length }};
+        if(Object.keys(answers).length < totalQuestions) {
+            alert('Please answer all questions before proceeding.');
+            return;
+        }
+        
+        // Send data
+        $.ajax({
+            url: "{% url 'tests:submit_test' %}",
+            type: 'POST',
+            data: JSON.stringify({answers: answers}),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if(response.success) {
+                    window.location.href = "{% url 'tests:test_results' 0 %}".replace('0', response.result_id);
+                } else {
+                    alert('An error occurred while processing the results. Please try again.');
+                }
+            },
+            error: function() {
+                alert('A connection error occurred. Please try again.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
