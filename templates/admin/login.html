@@ -1,6 +1,5 @@
-{% extends "admin/base.html" %}
-
-{% load static %}
+{% extends "admin/login.html" %}
+{% load i18n static %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -10,8 +9,6 @@
     <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
 {% endblock %}
 
-{% block title %}{{ title }} | المستشار الجامعي الذكي{% endblock %}
-
 {% block branding %}
 <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
@@ -19,5 +16,3 @@
     </a>
 </h1>
 {% endblock %}
-
-{% block nav-global %}{% endblock %}
