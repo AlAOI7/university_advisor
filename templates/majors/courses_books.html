@@ -18,7 +18,7 @@
     <!-- Tabs -->
     <ul class="nav nav-pills nav-fill mb-5" id="content-tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active pill-lg" id="courses-tab" data-bs-toggle="tab" 
+            <button class="nav-link {% if active_tab != 'books' %}active{% endif %} pill-lg" id="courses-tab" data-bs-toggle="tab" 
                     data-bs-target="#courses" type="button">
                 <i class="fas fa-laptop-code me-2"></i>
                 Training Courses
@@ -26,7 +26,7 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link pill-lg" id="books-tab" data-bs-toggle="tab" 
+            <button class="nav-link {% if active_tab == 'books' %}active{% endif %} pill-lg" id="books-tab" data-bs-toggle="tab" 
                     data-bs-target="#books" type="button">
                 <i class="fas fa-book me-2"></i>
                 Reference Books
@@ -38,57 +38,86 @@
     <!-- Tab Content -->
     <div class="tab-content" id="content-tabs-content">
         <!-- Courses Tab -->
-        <div class="tab-pane fade show active" id="courses" role="tabpanel">
+        <div class="tab-pane fade {% if active_tab != 'books' %}show active{% endif %}" id="courses" role="tabpanel">
+            {% if course_search or platform_filter or type_filter or language_filter %}
+            <div class="alert alert-info">
+                <h6 class="mb-2">Search Results:</h6>
+                <p class="mb-0">
+                    Found <strong>{{ courses.count }}</strong> course(s)
+                    {% if course_search %}matching "<strong>{{ course_search }}</strong>"{% endif %}
+                    {% if platform_filter %}on <strong>{{ platform_filter }}</strong>{% endif %}
+                    {% if type_filter %}of type <strong>{{ type_filter }}</strong>{% endif %}
+                    {% if language_filter %}in <strong>{{ language_filter }}</strong>{% endif %}
+                </p>
+            </div>
+            {% endif %}
             <!-- Filters -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card shadow-sm border-0">
                         <div class="card-body">
-                            <div class="row g-3">
+                            <form method="get" class="row g-3">
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="course-search" 
-                                           placeholder="🔍 Search for a course...">
+                                    <input type="text" class="form-control" name="course_search" 
+                                           placeholder="🔍 Search for a course..." value="{{ course_search }}">
                                 </div>
                                 <div class="col-md-3">
-                                    <select class="form-select" id="platform-filter">
+                                    <select class="form-select" name="platform">
                                         <option value="">All Platforms</option>
-                                        <option value="coursera">Coursera</option>
-                                        <option value="udemy">Udemy</option>
-                                        <option value="edx">edX</option>
-                                        <option value="linkedin">LinkedIn Learning</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select" id="difficulty-filter">
-                                        <option value="">All Levels</option>
-                                        <option value="beginner">Beginner</option>
-                                        <option value="intermediate">Intermediate</option>
-                                        <option value="advanced">Advanced</option>
+                                        <option value="coursera" {% if platform_filter == 'coursera' %}selected{% endif %}>Coursera</option>
+                                        <option value="udemy" {% if platform_filter == 'udemy' %}selected{% endif %}>Udemy</option>
+                                        <option value="edx" {% if platform_filter == 'edx' %}selected{% endif %}>edX</option>
+                                        <option value="linkedin" {% if platform_filter == 'linkedin' %}selected{% endif %}>LinkedIn Learning</option>
+                                        <option value="youtube" {% if platform_filter == 'youtube' %}selected{% endif %}>YouTube</option>
+                                        <option value="other" {% if platform_filter == 'other' %}selected{% endif %}>Other</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button class="btn btn-outline-danger w-100" onclick="clearFilters()">
-                                        <i class="fas fa-times me-1"></i>Clear
+                                    <select class="form-select" name="type">
+                                        <option value="">All Types</option>
+                                        <option value="free" {% if type_filter == 'free' %}selected{% endif %}>Free</option>
+                                        <option value="paid" {% if type_filter == 'paid' %}selected{% endif %}>Paid</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" name="language">
+                                        <option value="">All Languages</option>
+                                        <option value="arabic" {% if language_filter == 'arabic' %}selected{% endif %}>Arabic</option>
+                                        <option value="english" {% if language_filter == 'english' %}selected{% endif %}>English</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search"></i>
                                     </button>
+                                </div>
+                            </form>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <a href="{% url 'majors:courses_books' %}" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-times me-1"></i>Clear All Filters
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
             <!-- Courses Grid -->
             <div class="row g-4" id="courses-grid">
                 {% for course in courses %}
-                <div class="col-lg-4 col-md-6 course-card" 
-                     data-platform="{{ course.provider|lower }}"
-                     data-difficulty="{{ course.difficulty }}">
+                <div class="col-lg-4 col-md-6 course-card">
                     <div class="card h-100 shadow-hover border-0 rounded-4">
                         <div class="card-header bg-gradient-course text-white">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">{{ course.provider }}</h6>
-                                <span class="badge bg-white text-dark">{{ course.get_difficulty_display|default:'Intermediate' }}</span>
+                                <h6 class="mb-0">{{ course.platform }}</h6>
+                                <span class="badge bg-white text-dark">
+                                    {% if course.type == 'free' %}
+                                        <i class="fas fa-gift text-success"></i> Free
+                                    {% else %}
+                                        <i class="fas fa-dollar-sign text-warning"></i> Paid
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
                         <div class="card-body">
@@ -106,9 +135,23 @@
                                         {{ course.language|default:'English' }}
                                     </span>
                                 </div>
-                                {% if course.category %}
+                                {% if course.rating > 0 %}
+                                <div class="mb-2">
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= course.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span class="text-muted small ms-1">({{ course.rating }})</span>
+                                </div>
+                                {% endif %}
+                                {% if course.major %}
                                 <span class="badge bg-light text-dark">
-                                    <i class="fas fa-tag me-1"></i>{{ course.category }}
+                                    <i class="fas fa-tag me-1"></i>{{ course.major.name }}
                                 </span>
                                 {% endif %}
                             </div>
@@ -122,20 +165,55 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center py-5">
-                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                    <h4 class="text-muted">No courses available currently</h4>
+                    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No courses found</h4>
+                    {% if course_search or platform_filter or type_filter or language_filter %}
+                    <p class="text-muted">Try adjusting your search criteria or browse all courses.</p>
+                    <a href="{% url 'majors:courses_books' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>View All Courses
+                    </a>
+                    {% else %}
+                    <p class="text-muted">No courses are currently available in the database.</p>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Books Tab -->
-        <div class="tab-pane fade" id="books" role="tabpanel">
+        <div class="tab-pane fade {% if active_tab == 'books' %}show active{% endif %}" id="books" role="tabpanel">
+            {% if book_search %}
+            <div class="alert alert-info">
+                <h6 class="mb-2">Search Results:</h6>
+                <p class="mb-0">
+                    Found <strong>{{ books.count }}</strong> book(s) matching "<strong>{{ book_search }}</strong>"
+                </p>
+            </div>
+            {% endif %}
             <!-- Search -->
             <div class="row mb-4">
                 <div class="col-md-6 mx-auto">
-                    <input type="text" class="form-control form-control-lg" id="book-search" 
-                           placeholder="🔍 Search for a book...">
+                    <form method="get">
+                        {# Preserve course filters so switching tabs doesn't lose them #}
+                        {% if course_search %}<input type="hidden" name="course_search" value="{{ course_search }}">{% endif %}
+                        {% if platform_filter %}<input type="hidden" name="platform" value="{{ platform_filter }}">{% endif %}
+                        {% if type_filter %}<input type="hidden" name="type" value="{{ type_filter }}">{% endif %}
+                        {% if language_filter %}<input type="hidden" name="language" value="{{ language_filter }}">{% endif %}
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-lg" name="book_search" 
+                                   placeholder="🔍 Search for a book..." value="{{ book_search }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        {% if book_search %}
+                        <div class="mt-2">
+                            <a href="{% url 'majors:courses_books' %}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-times me-1"></i>Clear Search
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
                 </div>
             </div>
 
@@ -154,25 +232,24 @@
                             </p>
                             <p class="card-text small text-muted">{{ book.description|truncatewords:10 }}</p>
                             
-                            {% if book.year_published %}
+                            {% if book.pages > 0 %}
                             <span class="badge bg-light text-dark small">
-                                <i class="fas fa-calendar me-1"></i>{{ book.year_published }}
+                                <i class="fas fa-file-alt me-1"></i>{{ book.pages }} pages
                             </span>
                             {% endif %}
                             
-                            {% if book.category %}
-                            <span class="badge bg-info small">{{ book.category }}</span>
+                            {% if book.format %}
+                            <span class="badge bg-info small">{{ book.format|upper }}</span>
+                            {% endif %}
+                            
+                            {% if book.major %}
+                            <span class="badge bg-success small">{{ book.major.name }}</span>
                             {% endif %}
                         </div>
                         <div class="card-footer bg-transparent border-0 p-3">
-                            {% if book.pdf_url %}
-                            <a href="{{ book.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-success w-100">
-                                <i class="fas fa-download me-1"></i>Download PDF
-                            </a>
-                            {% endif %}
-                            {% if book.amazon_url %}
-                            <a href="{{ book.amazon_url }}" target="_blank" class="btn btn-sm btn-outline-warning w-100 mt-2">
-                                <i class="fab fa-amazon me-1"></i>Amazon
+                            {% if book.download_url %}
+                            <a href="{{ book.download_url }}" target="_blank" class="btn btn-sm btn-outline-success w-100">
+                                <i class="fas fa-download me-1"></i>Download {{ book.format|upper|default:'PDF' }}
                             </a>
                             {% endif %}
                         </div>
@@ -180,8 +257,16 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center py-5">
-                    <i class="fas fa-book fa-4x text-muted mb-3"></i>
-                    <h4 class="text-muted">No books available currently</h4>
+                    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No books found</h4>
+                    {% if book_search %}
+                    <p class="text-muted">Try adjusting your search criteria or browse all books.</p>
+                    <a href="{% url 'majors:courses_books' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>View All Books
+                    </a>
+                    {% else %}
+                    <p class="text-muted">No books are currently available in the database.</p>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -230,53 +315,23 @@
 
 {% block extra_js %}
 <script>
-// Course search
-document.getElementById('course-search').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    filterCourses();
-});
-
-document.getElementById('platform-filter').addEventListener('change', filterCourses);
-document.getElementById('difficulty-filter').addEventListener('change', filterCourses);
-
-function filterCourses() {
-    const searchTerm = document.getElementById('course-search').value.toLowerCase();
-    const platform = document.getElementById('platform-filter').value.toLowerCase();
-    const difficulty = document.getElementById('difficulty-filter').value;
-    
-    document.querySelectorAll('.course-card').forEach(card => {
-        const title = card.querySelector('.card-title').textContent.toLowerCase();
-        const cardPlatform = card.dataset.platform;
-        const cardDifficulty = card.dataset.difficulty;
-        
-        const matchesSearch = title.includes(searchTerm);
-        const matchesPlatform = !platform || cardPlatform.includes(platform);
-        const matchesDifficulty = !difficulty || cardDifficulty === difficulty;
-        
-        card.style.display = (matchesSearch && matchesPlatform && matchesDifficulty) ? 'block' : 'none';
-    });
-}
-
-function clearFilters() {
-    document.getElementById('course-search').value = '';
-    document.getElementById('platform-filter').value = '';
-    document.getElementById('difficulty-filter').value = '';
-    filterCourses();
-}
-
-// Book search
-document.getElementById('book-search').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    
-    document.querySelectorAll('.book-card').forEach(card => {
-        const title = card.querySelector('.card-title').textContent.toLowerCase();
-        const author = card.querySelector('.text-muted').textContent.toLowerCase();
-        
-        if (title.includes(searchTerm) || author.includes(searchTerm)) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Activate correct tab based on server-side context ──
+    const activeTab = '{{ active_tab }}';
+    if (activeTab === 'books') {
+        const booksTabBtn = document.getElementById('books-tab');
+        if (booksTabBtn) {
+            const tab = new bootstrap.Tab(booksTabBtn);
+            tab.show();
         }
+    }
+
+    // Auto-submit course filter selects
+    const selects = document.querySelectorAll('#courses select[name]');
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
     });
 });
 </script>

@@ -1,143 +1,590 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Profile - Smart University Advisor{% endblock %} 
+{% block title %}Profile - Smart University Advisor{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .profile-avatar i {
+        font-size: 3rem;
+        color: #667eea;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .section-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 15px 15px 0 0;
+    }
+    
+    .test-result-item {
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .test-result-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .recommendation-item {
+        border: 2px solid #e9ecef;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .recommendation-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+    
+    .match-percentage {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .badge-custom {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .nav-pills .nav-link {
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        margin-right: 0.5rem;
+    }
+    
+    .nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row">
-        <!-- Sidebar -->
-        
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" 
-                             style="width: 100px; height: 100px;">
-                            <i class="fas fa-user fa-3x text-white"></i>
-                        </div>
-                    </div>
-                    <h5 class="card-title">{{ user.username }}</h5>
-                    <p class="text-muted">{{ user.email }}</p>
-                    
-                    <ul class="list-unstyled mt-4">
-                        <li class="mb-2">
-                            <a href="{% url 'accounts:profile' %}" class="text-primary fw-bold">
-                                <i class="fas fa-user-circle me-2"></i>Profile 
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="{% url 'tests:test_home' %}" class="text-dark">
-                                <i class="fas fa-clipboard-check me-2"></i>Tests 
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="{% url 'majors:catalog' %}" class="text-dark">
-                                <i class="fas fa-book me-2"></i>Majors 
-                            </a>
-                        </li>
-                        <li>
-                            <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0; display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="text-danger" style="border: none; background: none; text-decoration: none; cursor: pointer;">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout 
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <h2 class="mb-2">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="mb-1"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                {% if user.profile.phone_number %}
+                <p class="mb-1"><i class="fas fa-phone me-2"></i>{{ user.profile.phone_number }}</p>
+                {% endif %}
+                {% if user.profile.city %}
+                <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i>{{ user.profile.city }}</p>
+                {% endif %}
+                <p class="mb-0"><i class="fas fa-calendar me-2"></i>Member since {{ user.date_joined|date:"F Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-clipboard-check stat-icon text-primary"></i>
+                    <h3 class="mb-2">{{ total_tests }}</h3>
+                    <p class="text-muted mb-0">Completed Tests</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Profile Content -->
-        
-        <div class="col-md-9">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Account Information</h5> 
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-graduation-cap stat-icon text-success"></i>
+                    <h3 class="mb-2">{{ total_recommendations }}</h3>
+                    <p class="text-muted mb-0">Recommended Majors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-comments stat-icon text-info"></i>
+                    <h3 class="mb-2">{{ total_conversations }}</h3>
+                    <p class="text-muted mb-0">AI Conversations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-calendar-alt stat-icon text-warning"></i>
+                    <h3 class="mb-2">{{ days_active }}</h3>
+                    <p class="text-muted mb-0">Days Active</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-pills mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="pill" 
+                    data-bs-target="#overview" type="button">
+                <i class="fas fa-home me-2"></i>Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tests-tab" data-bs-toggle="pill" 
+                    data-bs-target="#tests" type="button">
+                <i class="fas fa-clipboard-check me-2"></i>My Tests
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="majors-tab" data-bs-toggle="pill" 
+                    data-bs-target="#majors" type="button">
+                <i class="fas fa-graduation-cap me-2"></i>Recommended Majors
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="settings-tab" data-bs-toggle="pill" 
+                    data-bs-target="#settings" type="button">
+                <i class="fas fa-cog me-2"></i>Settings
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="profileTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row">
+                <!-- Recent Tests -->
+                <div class="col-md-6 mb-4">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Recent Tests</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if test_results %}
+                                {% for result in test_results|slice:":3" %}
+                                <div class="test-result-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ result.test_category.name }}</h6>
+                                            <p class="text-muted small mb-1">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                {{ result.created_at|date:"M d, Y" }}
+                                            </p>
+                                            <span class="badge bg-primary">Score: {{ result.score }}</span>
+                                        </div>
+                                        <a href="{% url 'tests:test_home' %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <div class="text-center mt-3">
+                                    <a href="#tests" data-bs-toggle="pill" class="btn btn-primary">
+                                        View All Tests <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="empty-state">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <p>No tests completed yet</p>
+                                    <a href="{% url 'tests:test_home' %}" class="btn btn-primary">
+                                        <i class="fas fa-play me-2"></i>Take Your First Test
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Recommendations -->
+                <div class="col-md-6 mb-4">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h5 class="mb-0"><i class="fas fa-star me-2"></i>Top Recommendations</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recommendations %}
+                                {% for rec in recommendations|slice:":3" %}
+                                <div class="recommendation-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ rec.major.name }}</h6>
+                                            <p class="text-muted small mb-0">{{ rec.major.category.name }}</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="match-percentage">{{ rec.match_percentage|floatformat:0 }}%</div>
+                                            <small class="text-muted">Match</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <div class="text-center mt-3">
+                                    <a href="#majors" data-bs-toggle="pill" class="btn btn-success">
+                                        View All Recommendations <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="empty-state">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <p>No recommendations yet</p>
+                                    <a href="{% url 'tests:test_home' %}" class="btn btn-success">
+                                        <i class="fas fa-play me-2"></i>Take a Test to Get Recommendations
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personality Profile -->
+            {% if user.profile.personality_type %}
+            <div class="section-card">
+                <div class="section-header">
+                    <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Personality Profile</h5>
                 </div>
                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Personality Type</h6>
+                            <p class="h5">{{ user.profile.personality_type }}</p>
+                        </div>
+                        {% if user.profile.strengths %}
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Strengths</h6>
+                            <p>{{ user.profile.strengths|truncatewords:10 }}</p>
+                        </div>
+                        {% endif %}
+                        {% if user.profile.interests %}
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Interests</h6>
+                            <p>{{ user.profile.interests|truncatewords:10 }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tests Tab -->
+        <div class="tab-pane fade" id="tests" role="tabpanel">
+            <div class="section-card">
+                <div class="section-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>All Test Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if test_results %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Test Name</th>
+                                        <th>Score</th>
+                                        <th>Date</th>
+                                        <th>Summary</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in test_results %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ result.test_category.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-custom bg-primary">{{ result.score }}</span>
+                                        </td>
+                                        <td>{{ result.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>{{ result.result_summary|truncatewords:10 }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#testModal{{ result.id }}">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h5>No Tests Completed Yet</h5>
+                            <p>Start your journey by taking a personality test!</p>
+                            <a href="{% url 'tests:test_home' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-play me-2"></i>Take Your First Test
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Majors Tab -->
+        <div class="tab-pane fade" id="majors" role="tabpanel">
+            <div class="section-card">
+                <div class="section-header">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Recommended Majors</h5>
+                </div>
+                <div class="card-body">
+                    {% if recommendations %}
+                        <div class="row">
+                            {% for rec in recommendations %}
+                            <div class="col-md-6 mb-4">
+                                <div class="recommendation-item h-100">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">{{ rec.major.name }}</h5>
+                                            <span class="badge bg-info">{{ rec.major.category.name }}</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="match-percentage">{{ rec.match_percentage|floatformat:0 }}%</div>
+                                            <small class="text-muted">Match</small>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-3">{{ rec.reason|truncatewords:20 }}</p>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'majors:major_detail' rec.major.id %}" 
+                                           class="btn btn-sm btn-outline-primary flex-grow-1">
+                                            <i class="fas fa-info-circle me-1"></i>View Details
+                                        </a>
+                                        <a href="{% url 'majors:catalog' %}" 
+                                           class="btn btn-sm btn-outline-success flex-grow-1">
+                                            <i class="fas fa-search me-1"></i>Explore More
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h5>No Recommendations Yet</h5>
+                            <p>Complete a personality test to get personalized major recommendations!</p>
+                            <a href="{% url 'tests:test_home' %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-play me-2"></i>Take a Test
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class="section-card">
+                <div class="section-header">
+                    <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Profile</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                {% for field in form %}
-                                    {% for error in field.errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
-                                {% endfor %}
+                        <h6 class="text-muted mb-3">Account Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Username</label>
+                                {{ u_form.username }}
                             </div>
-                        {% endif %}
-                        
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                {% endif %}
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                {{ u_form.email }}
                             </div>
-                        {% endfor %}
-                        
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                {{ u_form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                {{ u_form.last_name }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="text-muted mb-3">Personal Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                {{ p_form.phone_number }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Birth Date</label>
+                                {{ p_form.birth_date }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">City</label>
+                                {{ p_form.city }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">School</label>
+                                {{ p_form.school }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Grade</label>
+                                {{ p_form.grade }}
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>Save Changes 
+                                <i class="fas fa-save me-2"></i>Save Changes
                             </button>
-                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg">Cancel</a> 
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
                         </div>
                     </form>
-                </div>
-            </div>
-            
-            <!-- User Stats -->
-            
-            <div class="row mt-4">
-                <div class="col-md-4">
-                    <div class="card text-center bg-light border-0 shadow-sm">
-                        <div class="card-body">
-                            <i class="fas fa-clipboard-check fa-2x text-primary mb-3"></i>
-                            <h3 class="mb-2">5</h3>
-                            <p class="text-muted mb-0">Completed Tests</p> 
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-center bg-light border-0 shadow-sm">
-                        <div class="card-body">
-                            <i class="fas fa-book fa-2x text-success mb-3"></i>
-                            <h3 class="mb-2">12</h3>
-                            <p class="text-muted mb-0">Completed Courses</p> 
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-center bg-light border-0 shadow-sm">
-                        <div class="card-body">
-                            <i class="fas fa-calendar-alt fa-2x text-warning mb-3"></i>
-                            <h3 class="mb-2">15</h3>
-                            <p class="text-muted mb-0">Active Days</p> 
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Test Detail Modals -->
+{% for result in test_results %}
+<div class="modal fade" id="testModal{{ result.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">{{ result.test_category.name }} - Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Score</h6>
+                        <p class="h4"><span class="badge bg-primary">{{ result.score }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Date Completed</h6>
+                        <p>{{ result.created_at|date:"F d, Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                <h6 class="text-muted">Summary</h6>
+                <p>{{ result.result_summary }}</p>
+                
+                {% if result.recommended_majors %}
+                <h6 class="text-muted mt-3">Recommended Majors</h6>
+                <p>{{ result.recommended_majors }}</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'tests:test_home' %}" class="btn btn-primary">Take Another Test</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
 {% block extra_js %}
 <script>
-    // Add simple effects
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-            });
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form-control class to all form inputs
+    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="date"], select');
+    inputs.forEach(input => {
+        input.classList.add('form-control');
+    });
+    
+    // Smooth scroll for tab links
+    document.querySelectorAll('a[data-bs-toggle="pill"]').forEach(link => {
+        link.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
+});
 </script>
-{% endblock %}
 {% endblock %}

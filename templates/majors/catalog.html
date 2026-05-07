@@ -1,6 +1,28 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    .search-highlight {
+        background-color: #fff3cd;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    
+    .search-info {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     
@@ -36,6 +58,21 @@
     
     <h2 class="mb-4">University Majors Directory</h2>
     
+    {% if search_query or selected_category %}
+    <div class="search-info">
+        <h6 class="mb-2">Search Results:</h6>
+        <p class="mb-0">
+            Found <strong>{{ majors.count }}</strong> major(s)
+            {% if search_query %}
+                matching "<strong>{{ search_query }}</strong>"
+            {% endif %}
+            {% if selected_category %}
+                in category "<strong>{{ selected_category.name }}</strong>"
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+    
     {% if majors %}
     <div class="row">
         {% for major in majors %}
@@ -50,8 +87,8 @@
                     
                     <div class="mb-3">
                         <small class="text-muted">
-                            <i class="fas fa-graduation-cap me-1"></i>
-                            <strong>Study Nature:</strong> {{ major.study_nature|truncatechars:60 }}
+                            <i class="fas fa-clock me-1"></i>
+                            <strong>Duration:</strong> {{ major.duration }}
                         </small>
                     </div>
                     
@@ -72,8 +109,21 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info">
-        <p class="mb-0">No majors found matching the search criteria.</p>
+    <div class="no-results">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No majors found</h4>
+        <p class="text-muted">
+            {% if search_query or selected_category %}
+                Try adjusting your search criteria or browse all majors.
+            {% else %}
+                No majors are currently available in the database.
+            {% endif %}
+        </p>
+        {% if search_query or selected_category %}
+        <a href="{% url 'majors:catalog' %}" class="btn btn-primary">
+            <i class="fas fa-list me-2"></i>View All Majors
+        </a>
+        {% endif %}
     </div>
     {% endif %}
     
@@ -112,4 +162,47 @@
     </nav>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search');
+    const categorySelect = document.getElementById('category');
+    const searchForm = searchInput.closest('form');
+    
+    // Auto-submit form when category changes
+    categorySelect.addEventListener('change', function() {
+        searchForm.submit();
+    });
+    
+    // Add search on Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchForm.submit();
+        }
+    });
+    
+    // Clear search functionality
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'btn btn-outline-secondary';
+    clearBtn.innerHTML = '<i class="fas fa-times"></i> Clear';
+    clearBtn.style.marginLeft = '10px';
+    
+    clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        categorySelect.value = '';
+        // Redirect to catalog without parameters
+        window.location.href = '{% url "majors:catalog" %}';
+    });
+    
+    // Add clear button if there are search parameters
+    if (searchInput.value || categorySelect.value) {
+        const searchButton = document.querySelector('button[type="submit"]');
+        searchButton.parentNode.appendChild(clearBtn);
+    }
+});
+</script>
 {% endblock %}

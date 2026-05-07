@@ -40,6 +40,8 @@
                         <i class="fas fa-graduation-cap fa-3x text-success"></i>
                         {% elif forloop.counter == 3 %}
                         <i class="fas fa-book-open fa-3x text-warning"></i>
+                        {% elif forloop.counter == 4 %}
+                        <i class="fas fa-robot fa-3x text-info"></i>
                         {% endif %}
                     </div>
                     <h4 class="card-title mb-3">{{ feature.title }}</h4>
@@ -50,6 +52,8 @@
                     <a href="{% url 'majors:catalog' %}" class="btn btn-outline-success mt-2">Browse Now</a> 
                     {% elif forloop.counter == 3 %}
                     <a href="{% url 'majors:courses_books' %}" class="btn btn-outline-warning mt-2">Browse Resources</a> 
+                    {% elif forloop.counter == 4 %}
+                    <a href="{% url 'advisor:chat' %}" class="btn btn-outline-info mt-2">Start Chat</a> 
                     {% endif %}
                 </div>
             </div>

@@ -312,38 +312,41 @@ Provide a brief, positive description in Arabic focusing on their strengths and 
     
     def recommend_majors(self, personality_analysis: Dict, interests: List) -> List[Dict]:
         """التوصية بالتخصصات بناءً على التحليل"""
-        
+
         personality_type = personality_analysis.get('personality_type', 'متوازن')
         career_paths = personality_analysis.get('career_paths', [])
-        
-        # الحصول على التخصصات من قاعدة البيانات
-        from majors.models import Major
-        
-        recommendations = []
-        
-        # مطابقة التخصصات مع المسارات المهنية
-        for career in career_paths[:5]:
-            matching_majors = Major.objects.filter(
-                models.Q(name__icontains=career) |
-                models.Q(description__icontains=career)
-            )[:2]
-            
-            for major in matching_majors:
-                if major not in [r['major'] for r in recommendations]:
-                    match_score = self._calculate_match_score(
-                        major, personality_type, interests
-                    )
-                    
-                    recommendations.append({
-                        'major': major,
-                        'match_percentage': match_score,
-                        'reasons': self._get_match_reasons(major, personality_type)
-                    })
-        
-        # ترتيب حسب التطابق
-        recommendations.sort(key=lambda x: x['match_percentage'], reverse=True)
-        
-        return recommendations[:10]
+
+        try:
+            from majors.models import Major
+            from django.db.models import Q  # Fix: was using models.Q without import
+
+            recommendations = []
+
+            for career in career_paths[:5]:
+                matching_majors = Major.objects.filter(
+                    Q(name__icontains=career) |
+                    Q(description__icontains=career)
+                )[:2]
+
+                seen_ids = {r['major'].id for r in recommendations if hasattr(r.get('major'), 'id')}
+                for major in matching_majors:
+                    if major.id not in seen_ids:
+                        seen_ids.add(major.id)
+                        match_score = self._calculate_match_score(
+                            major, personality_type, interests
+                        )
+                        recommendations.append({
+                            'major': major,
+                            'match_percentage': match_score,
+                            'reasons': self._get_match_reasons(major, personality_type),
+                        })
+
+            recommendations.sort(key=lambda x: x['match_percentage'], reverse=True)
+            return recommendations[:10]
+
+        except Exception as e:
+            logger.error(f"recommend_majors error: {e}")
+            return []
     
     def _calculate_match_score(self, major, personality_type: str, interests: List) -> float:
         """حساب نسبة التطابق"""

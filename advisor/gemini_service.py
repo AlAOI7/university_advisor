@@ -1,117 +1,142 @@
 # advisor/gemini_service.py
 
+import json
+import logging
+from typing import Dict, List, Optional
+
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+# ── Optional dependency ────────────────────────────────────────────────────────
 try:
-    import google.generativeai as genai
+    from google import genai
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
     genai = None
+    logger.warning("google-genai package not installed. Gemini will be disabled.")
 
-from django.conf import settings
-import json
-from typing import Dict, List, Optional
-import logging
+# ── Internal imports (guarded so a broken sub-module never kills the service) ──
+try:
+    from .training_examples import format_examples_for_prompt, get_examples_for_language
+    TRAINING_EXAMPLES_AVAILABLE = True
+except Exception as _te_err:
+    TRAINING_EXAMPLES_AVAILABLE = False
+    logger.warning(f"training_examples import failed: {_te_err}")
 
-from .training_examples import format_examples_for_prompt, get_examples_for_language
-from .rule_based_ai import RuleBasedAI
+try:
+    from .rule_based_ai import RuleBasedAI
+    RULE_BASED_AVAILABLE = True
+except Exception as _rb_err:
+    RULE_BASED_AVAILABLE = False
+    RuleBasedAI = None
+    logger.warning(f"rule_based_ai import failed: {_rb_err}")
 
-logger = logging.getLogger(__name__)
+try:
+    from .huggingface_service import HuggingFaceService
+    HF_AVAILABLE = True
+except Exception as _hf_err:
+    HF_AVAILABLE = False
+    HuggingFaceService = None
+    logger.warning(f"huggingface_service import failed: {_hf_err}")
+
 
 class GeminiService:
     """
     Central service for communicating with Google Gemini API.
-    Provides functions for test analysis, recommendation generation, and chat.
+    Always returns a response — never raises to the caller.
+    Fallback chain: Gemini → RuleBasedAI → HuggingFace → static message.
     """
-    
+
+    # ── Initialisation ─────────────────────────────────────────────────────────
+
     def __init__(self):
-        """Initialize Gemini service"""
-        # Check library availability first
+        """Initialize with ALL attributes set to safe defaults FIRST."""
+
+        # --- Safe defaults (set unconditionally so AttributeError is impossible) ---
+        self.client = None
+        self.model = None
+        self.is_configured = False
+        self._fallback_ai = None
+        self._hf_service = None
+
+        # --- Fallback AI engines ---
+        if RULE_BASED_AVAILABLE and RuleBasedAI is not None:
+            try:
+                self._fallback_ai = RuleBasedAI()
+                logger.info("RuleBasedAI initialized successfully.")
+            except Exception as e:
+                logger.error(f"RuleBasedAI init failed: {e}")
+
+        if HF_AVAILABLE and HuggingFaceService is not None:
+            try:
+                self._hf_service = HuggingFaceService()
+                logger.info("HuggingFaceService initialized successfully.")
+            except Exception as e:
+                logger.error(f"HuggingFaceService init failed: {e}")
+
+        # --- Gemini API ---
         if not GEMINI_AVAILABLE:
-            logger.warning("google-generativeai library not installed. Using fallback system.")
-            self.model = None
-            self.is_configured = False
+            logger.warning("Gemini library unavailable. Running on fallback only.")
             return
-        
+
         try:
-            api_key = settings.GEMINI_API_KEY
-            if not api_key or api_key == 'your_api_key_here':
-                logger.warning("GEMINI_API_KEY not configured. Using RuleBasedAI fallback.")
-                self.model = None
-                self.is_configured = False
-            else:
-                genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-pro')
-                self.is_configured = True
-                logger.info("Gemini API configured successfully")
+            api_key = getattr(settings, 'GEMINI_API_KEY', '') or ''
+            api_key = api_key.strip()
+
+            if not api_key or api_key in ('your_api_key_here', 'your-api-key-here'):
+                logger.warning("GEMINI_API_KEY not set. Running on fallback only.")
+                return
+
+            self.client = genai.Client(api_key=api_key)
+            self.is_configured = True
+            logger.info("Gemini API configured successfully.")
+
         except Exception as e:
-            logger.error(f"Error configuring Gemini: {str(e)}")
-            self.model = None
+            logger.error(f"Gemini configuration error: {e}")
+            self.client = None
             self.is_configured = False
-        
-        # Always initialize fallback AI
-        self._fallback_ai = RuleBasedAI()
-    
+
+    # ── Public API ─────────────────────────────────────────────────────────────
+
     def generate_content(self, prompt: str) -> str:
-        """
-        Generate content from Gemini.
-        
-        Args:
-            prompt: The text to send to the model
-            
-        Returns:
-            The text generated by Gemini
-        """
-        if not self.is_configured:
+        """Generate content from Gemini, falling back gracefully on any error."""
+        if not self.is_configured or not self.client:
             return self._get_fallback_response(prompt)
-        
+
         try:
-            response = self.model.generate_content(prompt)
-            return response.text
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
+            return response.text or self._get_fallback_response(prompt)
         except Exception as e:
-            logger.error(f"Error generating content: {str(e)}")
+            logger.error(f"generate_content error: {e}")
             return self._get_fallback_response(prompt)
-    
+
     def analyze_test_results(self, user_answers: Dict) -> Dict:
-        """
-        Analyze test results using Gemini.
-        
-        Args:
-            user_answers: Dictionary containing the user's answers
-            
-        Returns:
-            Dictionary containing the full analysis
-        """
-        if not self.is_configured:
+        """Analyze test results using Gemini with fallback."""
+        if not self.is_configured or not self.client:
             return self._get_fallback_analysis()
-        
-        # Build detailed analysis prompt
+
         prompt = self._build_analysis_prompt(user_answers)
-        
+
         try:
-            response = self.model.generate_content(prompt)
-            analysis_text = response.text
-            
-            # Attempt to extract JSON from the response
-            return self._parse_analysis_response(analysis_text)
-            
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
+            return self._parse_analysis_response(response.text or '')
         except Exception as e:
-            logger.error(f"Error analyzing test results: {str(e)}")
+            logger.error(f"analyze_test_results error: {e}")
             return self._get_fallback_analysis()
-    
+
     def recommend_majors(self, personality_analysis: Dict, user_interests: List[str]) -> List[Dict]:
-        """
-        Recommend majors based on personality analysis.
-        
-        Args:
-            personality_analysis: Personality analysis result
-            user_interests: User's interests
-            
-        Returns:
-            List of recommended majors with match percentages and reasons
-        """
-        if not self.is_configured:
+        """Recommend majors based on personality analysis with fallback."""
+        if not self.is_configured or not self.client:
             return self._get_fallback_recommendations()
-        
+
         prompt = f"""
 You are an expert academic advisor specializing in guiding students to choose the right university major.
 
@@ -142,240 +167,239 @@ Provide the response in JSON format as follows:
   ]
 }}
 """
-        
         try:
-            response = self.model.generate_content(prompt)
-            return self._parse_recommendations_response(response.text)
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
+            return self._parse_recommendations_response(response.text or '')
         except Exception as e:
-            logger.error(f"Error generating recommendations: {str(e)}")
+            logger.error(f"recommend_majors error: {e}")
             return self._get_fallback_recommendations()
-    
+
     def chat_response(self, message: str, context: Optional[Dict] = None) -> str:
         """
-        Respond to a chat message from the user.
-        
-        Args:
-            message: The user's message
-            context: Context (user profile, conversation history, etc.)
-            
-        Returns:
-            The AI's response
+        Respond to a chat message.
+        Always returns a non-empty string — never raises.
         """
-        if not self.is_configured:
+        if not message or not message.strip():
+            return "Please send a message and I'll be happy to help!"
+
+        if not self.is_configured or not self.client:
             return self._get_fallback_chat_response(message)
-        
-        # Build prompt with context
+
         prompt = self._build_chat_prompt(message, context)
-        
+
         try:
-            response = self.model.generate_content(prompt)
-            return response.text
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
+            text = response.text if response and response.text else ''
+            return text.strip() or self._get_fallback_chat_response(message)
         except Exception as e:
-            logger.error(f"Error in chat: {str(e)}")
+            logger.error(f"chat_response error: {e}")
             return self._get_fallback_chat_response(message)
-    
-    # === Helper Methods ===
-    
+
+    # ── Prompt builders ────────────────────────────────────────────────────────
+
     def _build_analysis_prompt(self, user_answers: Dict) -> str:
-        """Build prompt for test result analysis with Few-Shot Examples"""
-        
-        # Detect language from data
+        """Build prompt for test result analysis."""
         language = self._detect_language(user_answers)
-        
-        # Get training examples
-        examples = format_examples_for_prompt(language, max_examples=2)
-        
-        if language == "arabic":
-            prompt = f"""
+
+        examples = ''
+        if TRAINING_EXAMPLES_AVAILABLE:
+            try:
+                examples = format_examples_for_prompt(language, max_examples=2)
+            except Exception:
+                pass
+
+        prompt = f"""
 You are an expert in personality analysis and career guidance for university students.
 
 **Your Task:** Analyze the student's answers and provide accurate, personalized recommendations.
 
 {examples}
 
-Now, analyze the following student's answers using the same approach:
+Now, analyze the following student's answers:
 
 **Student Data:**
 {json.dumps(user_answers, ensure_ascii=False, indent=2)}
 
 **Required Analysis:**
-1. **Personality Type**: Identify the dominant type (analytical, creative, social, organized, practical)
-2. **Strengths**: List 5 specific strengths based on the answers
-3. **Main Interests**: Identify the top 3 areas of interest
-4. **Preferred Learning Style**: Brief description
-5. **Suitable Study Environment**: Description of the ideal environment
+1. Personality Type (analytical / creative / social / organized / practical)
+2. Strengths: list 5 specific strengths
+3. Main Interests: top 3 areas
+4. Preferred Learning Style
+5. Suitable Study Environment
 
-**Response Format (JSON):**
+**Response Format (JSON only):**
 {{
-  "personality_type": "personality type",
-  "strengths": ["strength 1", "strength 2", "strength 3", "strength 4", "strength 5"],
-  "interests": ["interest 1", "interest 2", "interest 3"],
-  "learning_style": "learning style",
-  "suitable_environment": "description of suitable environment"
+  "personality_type": "...",
+  "strengths": ["...", "...", "...", "...", "..."],
+  "interests": ["...", "...", "..."],
+  "learning_style": "...",
+  "suitable_environment": "..."
 }}
 """
-        else:  # English
-            prompt = f"""
-You are an expert in personality analysis and career guidance for university students.
-
-**Your Task:** Analyze the student's answers and provide accurate, personalized recommendations.
-
-{examples}
-
-Now, analyze the following student's answers using the same approach:
-
-**Student Data:**
-{json.dumps(user_answers, ensure_ascii=False, indent=2)}
-
-**Required Analysis:**
-1. **Personality Type**: Identify the dominant type (analytical, creative, social, organized, practical)
-2. **Strengths**: List 5 specific strengths based on the answers
-3. **Main Interests**: Identify the top 3 areas of interest
-4. **Preferred Learning Style**: Brief description
-5. **Suitable Study Environment**: Description of the ideal environment
-
-**Response Format (JSON):**
-{{
-  "personality_type": "personality type",
-  "strengths": ["strength 1", "strength 2", "strength 3", "strength 4", "strength 5"],
-  "interests": ["interest 1", "interest 2", "interest 3"],
-  "learning_style": "learning style",
-  "suitable_environment": "description of suitable environment"
-}}
-"""
-        
         return prompt
-    
-    def _detect_language(self, data: Dict) -> str:
-        """
-        Detect language from data.
-        """
-        # Check dictionary keys
-        data_str = json.dumps(data, ensure_ascii=False).lower()
-        
-        # Common Arabic keywords
-        arabic_keywords = ['تحليلي', 'إبداعي', 'اجتماعي', 'علوم', 'هندسة', 'طب']
-        # Common English keywords
-        english_keywords = ['analytical', 'creative', 'social', 'science', 'engineering', 'medicine']
-        
-        arabic_count = sum(1 for word in arabic_keywords if word in data_str)
-        english_count = sum(1 for word in english_keywords if word in data_str)
-        
-        return "arabic" if arabic_count > english_count else "english"
-    
+
     def _build_chat_prompt(self, message: str, context: Optional[Dict]) -> str:
-        """Build chat prompt with context"""
-        context_str = ""
+        """Build chat prompt with optional context."""
+        context_str = ''
         if context:
             if 'user_profile' in context:
-                context_str += f"\nStudent Info: {context['user_profile']}"
+                context_str += f"\nStudent Profile: {context['user_profile']}"
             if 'conversation_history' in context:
-                context_str += f"\nConversation History: {context['conversation_history']}"
-        
-        prompt = f"""
-You are a smart academic advisor specializing in helping students choose the right university major.
+                history = context['conversation_history']
+                if history:
+                    recent = history[-6:]  # last 6 messages only
+                    history_text = '\n'.join(
+                        f"{m.get('role','user').capitalize()}: {m.get('content','')}"
+                        for m in recent
+                    )
+                    context_str += f"\n\nRecent Conversation:\n{history_text}"
+            if 'available_majors' in context:
+                majors_list = ', '.join(context['available_majors'][:10])
+                context_str += f"\n\nAvailable Majors: {majors_list}"
 
+        prompt = f"""You are a highly intelligent and versatile AI assistant serving as an academic advisor for university students.
+
+Respond logically and comprehensively to ANY topic, question, or input — not just academic ones.
+Be direct, friendly, and professional. Do NOT ask unnecessary follow-up questions.
 {context_str}
 
 Student Message: {message}
 
-Provide a helpful and encouraging response that assists the student in making their decision. Be friendly and professional.
-"""
+Provide a helpful, direct response in the student's language."""
         return prompt
-    
+
+    # ── Response parsers ───────────────────────────────────────────────────────
+
     def _parse_analysis_response(self, response_text: str) -> Dict:
-        """Extract JSON from analysis response"""
+        """Extract JSON from analysis response with fallback."""
         try:
-            # Attempt to find JSON in the text
             start = response_text.find('{')
             end = response_text.rfind('}') + 1
             if start != -1 and end > start:
-                json_str = response_text[start:end]
-                return json.loads(json_str)
-        except:
+                return json.loads(response_text[start:end])
+        except Exception:
             pass
-        
-        # If failed, use response as plain text
+        return self._get_fallback_analysis()
+
+    def _parse_recommendations_response(self, response_text: str) -> List[Dict]:
+        """Extract recommendations list from response with fallback."""
+        try:
+            start = response_text.find('{')
+            end = response_text.rfind('}') + 1
+            if start != -1 and end > start:
+                data = json.loads(response_text[start:end])
+                recs = data.get('recommendations', [])
+                if recs:
+                    return recs
+        except Exception:
+            pass
+        return self._get_fallback_recommendations()
+
+    def _detect_language(self, data: Dict) -> str:
+        """Detect language from dictionary data."""
+        try:
+            data_str = json.dumps(data, ensure_ascii=False).lower()
+            arabic_keywords = ['تحليلي', 'إبداعي', 'اجتماعي', 'علوم', 'هندسة', 'طب']
+            english_keywords = ['analytical', 'creative', 'social', 'science', 'engineering', 'medicine']
+            ar = sum(1 for w in arabic_keywords if w in data_str)
+            en = sum(1 for w in english_keywords if w in data_str)
+            return 'arabic' if ar > en else 'english'
+        except Exception:
+            return 'english'
+
+    # ── Fallback methods ───────────────────────────────────────────────────────
+
+    def _get_fallback_response(self, prompt: str) -> str:
+        """Delegate to RuleBasedAI; if unavailable return a static message."""
+        if self._fallback_ai is not None:
+            try:
+                return self._fallback_ai.chat(prompt)
+            except Exception as e:
+                logger.error(f"RuleBasedAI.chat error: {e}")
+        return (
+            "I'm your academic advisor assistant. I'm experiencing a temporary issue "
+            "with the AI service. Please try again in a moment, or ask me about "
+            "university majors, career paths, and academic guidance."
+        )
+
+    def _get_fallback_analysis(self) -> Dict:
+        """Return a structured fallback analysis."""
+        if self._fallback_ai is not None:
+            try:
+                result = self._fallback_ai.analyze({})
+                pa = result.get('personality_analysis', {})
+                return {
+                    'personality_type': pa.get('personality_type', 'Balanced'),
+                    'strengths': pa.get('strengths', ['Continuous learning', 'Problem solving', 'Adaptability', 'Creativity', 'Teamwork']),
+                    'interests': pa.get('top_interests', ['Technology', 'Science', 'Arts']),
+                    'learning_style': pa.get('learning_style', 'Flexible and diverse'),
+                    'suitable_environment': pa.get('suitable_environment', 'Collaborative academic environment'),
+                }
+            except Exception as e:
+                logger.error(f"RuleBasedAI.analyze error: {e}")
+
         return {
             'personality_type': 'Balanced',
-            'strengths': ['Ability to learn', 'Adaptability'],
-            'interests': ['Diverse interests'],
-            'learning_style': 'Flexible',
-            'suitable_environment': response_text[:200]
+            'strengths': ['Continuous learning', 'Problem solving', 'Adaptability', 'Creativity', 'Teamwork'],
+            'interests': ['Technology', 'Science', 'Arts'],
+            'learning_style': 'Flexible and diverse',
+            'suitable_environment': 'Collaborative academic environment',
         }
-    
-    def _parse_recommendations_response(self, response_text: str) -> List[Dict]:
-        """Extract recommendations from response"""
-        try:
-            start = response_text.find('{')
-            end = response_text.rfind('}') + 1
-            if start != -1 and end > start:
-                json_str = response_text[start:end]
-                data = json.loads(json_str)
-                return data.get('recommendations', [])
-        except:
-            pass
-        
-        return self._get_fallback_recommendations()
-    
-    # === Fallback Methods — delegate to RuleBasedAI for rich bilingual responses ===
-    
-    def _get_fallback_response(self, prompt: str) -> str:
-        """Rich fallback using RuleBasedAI chat engine"""
-        return self._fallback_ai.chat(prompt)
-    
-    def _get_fallback_analysis(self) -> Dict:
-        """Rich fallback analysis using RuleBasedAI"""
-        result = self._fallback_ai.analyze({})
-        pa = result.get('personality_analysis', {})
-        return {
-            'personality_type': pa.get('personality_type', 'Balanced'),
-            'strengths': pa.get('strengths', ['Continuous learning', 'Problem solving', 'Adaptability']),
-            'interests': pa.get('top_interests', ['Technology', 'Science']),
-            'learning_style': pa.get('learning_style', 'Flexible and diverse'),
-            'suitable_environment': pa.get('suitable_environment', 'Diverse academic environment')
-        }
-    
+
     def _get_fallback_recommendations(self) -> List[Dict]:
-        """Rich fallback recommendations — both Arabic & English majors"""
+        """Return static bilingual major recommendations."""
         return [
             {
                 'major_name': 'Computer Science / علوم الحاسب',
                 'match_percentage': 80,
-                'reasons': ['Vital tech field / مجال تقني حيوي', 'Wide global career opportunities / فرص عالمية', 'Competitive salaries / رواتب تنافسية'],
+                'reasons': ['Vital tech field', 'Wide global career opportunities', 'Competitive salaries'],
                 'required_skills': ['Programming', 'Logical thinking', 'Mathematics'],
-                'career_opportunities': ['Software Engineer', 'Data Scientist', 'AI Engineer']
+                'career_opportunities': ['Software Engineer', 'Data Scientist', 'AI Engineer'],
             },
             {
                 'major_name': 'Business Administration / إدارة الأعمال',
                 'match_percentage': 75,
-                'reasons': ['Comprehensive field / مجال شامل', 'Universal applicability / تطبيق شامل', 'Leadership opportunities / فرص قيادية'],
+                'reasons': ['Comprehensive field', 'Universal applicability', 'Leadership opportunities'],
                 'required_skills': ['Planning', 'Communication', 'Leadership'],
-                'career_opportunities': ['Manager', 'Entrepreneur', 'Business Analyst']
+                'career_opportunities': ['Manager', 'Entrepreneur', 'Business Analyst'],
             },
             {
                 'major_name': 'Medicine / الطب البشري',
                 'match_percentage': 72,
-                'reasons': ['Humanitarian + scientific / علم وإنسانية', 'High market demand / طلب سوق عال', 'Stable career / استقرار مهني'],
+                'reasons': ['Humanitarian + scientific', 'High market demand', 'Stable career'],
                 'required_skills': ['Science', 'Empathy', 'Precision'],
-                'career_opportunities': ['Doctor', 'Researcher', 'Medical Specialist']
+                'career_opportunities': ['Doctor', 'Researcher', 'Medical Specialist'],
             },
             {
                 'major_name': 'Engineering / الهندسة',
                 'match_percentage': 70,
-                'reasons': ['Practical + analytical / عملي وتحليلي', 'Wide applications / تطبيقات واسعة', 'Innovation driven / مدفوع بالابتكار'],
+                'reasons': ['Practical + analytical', 'Wide applications', 'Innovation driven'],
                 'required_skills': ['Mathematics', 'Physics', 'Problem solving'],
-                'career_opportunities': ['Civil Engineer', 'Mechanical Engineer', 'Project Manager']
+                'career_opportunities': ['Civil Engineer', 'Mechanical Engineer', 'Project Manager'],
             },
             {
                 'major_name': 'Graphic Design / التصميم الجرافيكي',
                 'match_percentage': 68,
-                'reasons': ['Creativity & skill / إبداع ومهارة', 'Growing digital market / سوق رقمي متنامي', 'Professional freedom / استقلالية مهنية'],
+                'reasons': ['Creativity & skill', 'Growing digital market', 'Professional freedom'],
                 'required_skills': ['Design tools', 'Creativity', 'Visual communication'],
-                'career_opportunities': ['Designer', 'Brand Specialist', 'UI/UX Designer']
+                'career_opportunities': ['Designer', 'Brand Specialist', 'UI/UX Designer'],
             },
         ]
-    
+
     def _get_fallback_chat_response(self, message: str) -> str:
-        """Rich bilingual fallback chat using RuleBasedAI"""
-        return self._fallback_ai.chat(message)
+        """Rich bilingual fallback using RuleBasedAI, then static message."""
+        if self._fallback_ai is not None:
+            try:
+                return self._fallback_ai.chat(message)
+            except Exception as e:
+                logger.error(f"RuleBasedAI fallback chat error: {e}")
+        return (
+            "I'm here to help with university majors, career guidance, and academic planning. "
+            "The AI service is temporarily busy — please try again shortly."
+        )

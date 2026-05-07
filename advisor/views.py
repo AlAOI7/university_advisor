@@ -6,7 +6,7 @@ def home(request):
         'title': 'Smart University Advisor',
         'features': [
             {'title': 'Personality Test', 'desc': 'Discover your career interests'},
-            {'title': 'Majors Guide', 'desc': 'Browse all university majors'},
+            {'title': 'Majors ', 'desc': 'Browse all university majors'},
             {'title': 'Courses & Books', 'desc': 'Free learning resources'},
             {'title': 'Smart Advisor', 'desc': 'Chat with an AI-powered smart advisor'}
         ]
